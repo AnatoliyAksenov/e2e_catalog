@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "e2e_catalog"
+version = "0.1.0"
+description = ""
+authors = ["Anatoliy A Aksenov <anatoliy@aksenov.org>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+openai = "^1.20.0"
+fastapi = "^0.110.1"
+uvicorn = "^0.29.0"
+sqlparse = "^0.5.0"
+psycopg2-binary = "^2.9.9"
+json-repair = "^0.15.3"
+pandas = "^2.2.2"
+llama-cpp-python = {version = "^0.2.76", source = "llama-cpp-python-gpu"}
+duckdb = "^1.0.0"
+html5lib = "^1.1"
+lxml = "^5.2.2"
+requests = "^2.32.3"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.1"
+
+
+[[tool.poetry.source]]
+name = "llama-cpp-python-gpu"
+url = "https://abetlen.github.io/llama-cpp-python/whl/cu124"
+priority = "supplemental"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
