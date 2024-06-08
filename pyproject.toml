@@ -19,6 +19,7 @@ duckdb = "^1.0.0"
 html5lib = "^1.1"
 lxml = "^5.2.2"
 requests = "^2.32.3"
+tika = "^2.6.0"
 
 
 [tool.poetry.group.dev.dependencies]
