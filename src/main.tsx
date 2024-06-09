@@ -9,11 +9,28 @@ import store from './store'
 
 import './index.css'
 
+import MainPage      from './pages/MainPage'
+import NewDashboard  from './pages/NewDashboard'
+
 
 
 const router = createBrowserRouter([
   {
-
+    element: <MainPage />,
+    children: [
+        {
+          path: "/",
+          element: <div />,
+        },
+        {
+          path: "/dataset",
+          element: <div  />,
+        },
+        {
+          path: "/new_dashboard",
+          element: <NewDashboard />,
+        },
+      ]
   }
 ]);
 

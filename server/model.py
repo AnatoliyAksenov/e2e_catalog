@@ -1,4 +1,6 @@
 import os
+from openai import OpenAI
+
 from llama_cpp import Llama, llama_free_model
 
 
@@ -55,9 +57,36 @@ class ModelStorage(object):
         llama_free_model()
         
 
+class RemoteModelStorage(object):
+
+    def  __init__(self):
+        # run locally
+        # python -m "llama_cpp.server" --model openchat-3.6-8b-20240522-IQ4_NL.gguf --n_gpu_layers=0 --port 7117
+        self._client = OpenAI(base_url='http://localhost:7117/v1')
+        self.name = model_name
+
+    def add(self, load=False, device='gpu'):
+        pass
+
+    def call(self, prompt, max_tokens=1024, temp=.75):
+
+        response = self._client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                    ],
+                }
+            ],
+            stop=['Q:'],
+            temperature=temp,
+            )
+        return response.choices[0].message.content
 
 
-model = ModelStorage()
+model = RemoteModelStorage()
 
 
 def model_api():
