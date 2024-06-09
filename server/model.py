@@ -1,10 +1,14 @@
 import os
-from llama_cpp import Llama
+from llama_cpp import Llama, llama_free_model
 
 
-model_file = "Llama-3-8B-Instruct-Gradient-1048k-IQ4_NL.gguf"
+model_file_llama = "Llama-3-8B-Instruct-Gradient-1048k-IQ4_NL.gguf"
 
-model_name =  "Llama-3-8B-Instruct-Gradient-1048k-IQ4_NL"
+model_name_llama =  "Llama-3-8B-Instruct-Gradient-1048k-IQ4_NL"
+
+model_file = "openchat-3.6-8b-20240522-IQ4_NL.gguf"
+
+model_name = "openchat-3.6-8b-20240522-IQ4_NL"
 
 model_path = os.path.join("/home/anatoliy/", model_file)
 
@@ -12,7 +16,7 @@ class ModelStorage(object):
 
     def __init__(self):
         self._model = None
-        self.ctx = 2048
+        self.ctx = 2048 * 5
         self.name = model_name
 
     
@@ -24,15 +28,15 @@ class ModelStorage(object):
                                          seed=17,
                                          n_ctx=self.ctx, 
                                          n_batch=512,
-                                         verbose=False
+                                         verbose=True
                                         )
 
     def call(self, prompt, max_tokens=1024, temp=.75):
         if not  self._model:
-            self.add( load=True )
+            self.add( load=True, device='cpu' )
 
 
-        p = prompt[:self.ctx] if len(prompt) < self.ctx else prompt
+        p = prompt[:self.ctx] if len(prompt) > self.ctx else prompt
         
         
         output = self._model(
@@ -42,8 +46,13 @@ class ModelStorage(object):
             echo=False, 
             temperature=temp
         )
+        
 
         return output.get('choices')[0].get('text')
+    
+    @classmethod
+    def unload(cls, obj):
+        llama_free_model()
         
 
 

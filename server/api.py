@@ -16,7 +16,7 @@ async def process_query(request: Request, model: Annotated[object, Depends(model
 
     print(question, ' ', theme)
 
-    data = processes.new_query(connection(), model, question, theme)
+    data = await processes.new_query(connection(), model, question, theme)
     return {"answer": data}
 
 # @router.post('/api/sql_question')

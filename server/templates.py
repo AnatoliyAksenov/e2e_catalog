@@ -15,6 +15,7 @@ openchat36 = {
 
 
 main = {
+    "speed_test": """%(system)sYou are a speed test bot.%(end)s %(user)s What is your name?%(end)s %(assistant)s""",
     "google_search_engine": """%(system)s You are a google search engine.%(end)s
         %(user)s Suggest internet search queries to ask to the "{q}" in order to "{theme}"
         %(end)s 
@@ -60,47 +61,56 @@ main = {
         %(assistant)s 
     """,
     "table": """%(system)s You are an Doctor Ph.D. Degree Economic Science.%(end)s
-                     %(user)s The given text: 
-                     {text}%(end)s
-                     %(user)s Extract key numeric data from suggested text %(end)s
-                     %(user)s Present results in json format. %(end)s
-                     %(user)s Example:
-                     [
-                      {{
-                        "Parameter 1": "10%",
-                        "Another parameter": "$1.000,00"
-                      }}
-                     ]
-                     %(end)s
-                     %(user)s If numeric data does not exists return nothing.%(end)s
-                     %(assistant)s"""
+        %(user)s The given text: 
+        {text}%(end)s
+        %(user)s Extract key numeric data from suggested text %(end)s
+        %(user)s Present results in json format. %(end)s
+        %(user)s Example:
+        [
+         {{
+           "Parameter 1": "10%%",
+           "Another parameter": "$1.000,00"
+         }}
+        ]
+        %(end)s
+        %(user)s If numeric data does not exists return nothing.%(end)s
+        %(assistant)s
+        """
 }
 
 
 openchat = {
+    "speed_test":{
+        "prompt": main.get("speed_test")% openchat36,
+        "temperature":  0.15,
+    },
     "google_search_engine":{
         "prompt": main.get("google_search_engine") % openchat36,
-        "temperature": 0.5,
+        "temperature": 0.15,
     },
     "yes_or_no":{
         "prompt": main.get("yes_or_no")  % openchat36,
-        "temperature": 0.5,
+        "temperature": 0.15,
     },
     "summarization":{
         "prompt": main.get("summarization")% openchat36,
-        "temperature": 0.5,
+        "temperature": 0.15,
     },
     "dates":{
         "prompt": main.get("dates")   % openchat36,
-        "temperature": 0.5,
+        "temperature": 0.15,
     },
     "table":{
         "prompt": main.get("table")   % openchat36,
-        "temperature": 0.5,
+        "temperature": 0.15,
     }
 }
 
 llama =  {
+    "speed_test":{
+        "prompt": main.get("speed_test")% llama3,
+        "temperature":  0.15,
+    },
     "google_search_engine":{
         "prompt": main.get("google_search_engine")  % llama3,
         "temperature":  0.5,

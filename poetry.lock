@@ -407,17 +407,17 @@ files = [
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.2.76"
+version = "0.2.77"
 description = "Python bindings for the llama.cpp library"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "llama_cpp_python-0.2.76-cp310-cp310-linux_x86_64.whl", hash = "sha256:113670fbaff16eb33a96c1c520eb5c56910028f7c6a947b05a5c722a9e20a442"},
-    {file = "llama_cpp_python-0.2.76-cp310-cp310-win_amd64.whl", hash = "sha256:33fee53b8d546b268d33ea7d52b622771a72ef71ce47d0433ee028dffaacf6a3"},
-    {file = "llama_cpp_python-0.2.76-cp311-cp311-linux_x86_64.whl", hash = "sha256:969218ade3abc8fd96f1a2549839dffd06da8d6c9f438f558791a488c831f69d"},
-    {file = "llama_cpp_python-0.2.76-cp311-cp311-win_amd64.whl", hash = "sha256:079af8a46bbff9b40815a9b94c48f06f12217977dd117b5254eadd9ab7591460"},
-    {file = "llama_cpp_python-0.2.76-cp312-cp312-linux_x86_64.whl", hash = "sha256:c5212034d10cce6080e1aea9517eac699d8c6c8f78c185fefb8e93d8c2fc7145"},
-    {file = "llama_cpp_python-0.2.76-cp312-cp312-win_amd64.whl", hash = "sha256:9150d0dfb9f27527a24ed5b63c179cf923eafb40fea3a32bcc85c0e905a3b626"},
+    {file = "llama_cpp_python-0.2.77-cp310-cp310-linux_x86_64.whl", hash = "sha256:500da94116d202c756b5328478387ee1fd8311cc7b39bd8f6561d304f058a2a5"},
+    {file = "llama_cpp_python-0.2.77-cp310-cp310-win_amd64.whl", hash = "sha256:3f6c7dd93a5f7fc4d937784acc0580dbf8e76e38903d95838034fbc646f9868a"},
+    {file = "llama_cpp_python-0.2.77-cp311-cp311-linux_x86_64.whl", hash = "sha256:ad6cc273bf850b3ebfadfb3e43088a4fb1942997ba7b1e9ab39413e5ce736519"},
+    {file = "llama_cpp_python-0.2.77-cp311-cp311-win_amd64.whl", hash = "sha256:cd0d6734af8eb26122e3f95fbda4119d69120d31d6c4725819a97e75d56cabc8"},
+    {file = "llama_cpp_python-0.2.77-cp312-cp312-linux_x86_64.whl", hash = "sha256:d311bbb9de88f8ebfc7301f80d4db2885a1384f59ef810f3403666039c9493e2"},
+    {file = "llama_cpp_python-0.2.77-cp312-cp312-win_amd64.whl", hash = "sha256:eb0f2b2c6015f458f1c61516944027fdba973199cdd56c0710280dba76ad9f8b"},
 ]
 
 [package.dependencies]
@@ -711,13 +711,13 @@ files = [
 
 [[package]]
 name = "openai"
-version = "1.31.0"
+version = "1.33.0"
 description = "The official Python library for the openai API"
 optional = false
 python-versions = ">=3.7.1"
 files = [
-    {file = "openai-1.31.0-py3-none-any.whl", hash = "sha256:82044ee3122113f2a468a1f308a8882324d09556ba5348687c535d3655ee331c"},
-    {file = "openai-1.31.0.tar.gz", hash = "sha256:54ae0625b005d6a3b895db2b8438dae1059cffff0cd262a26e9015c13a29ab06"},
+    {file = "openai-1.33.0-py3-none-any.whl", hash = "sha256:621163b56570897ab8389d187f686a53d4771fd6ce95d481c0a9611fe8bc4229"},
+    {file = "openai-1.33.0.tar.gz", hash = "sha256:1169211a7b326ecbc821cafb427c29bfd0871f9a3e0947dd9e51acb3b0f1df78"},
 ]
 
 [package.dependencies]
@@ -1210,13 +1210,13 @@ telegram = ["requests"]
 
 [[package]]
 name = "typing-extensions"
-version = "4.12.1"
+version = "4.12.2"
 description = "Backported and Experimental Type Hints for Python 3.8+"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "typing_extensions-4.12.1-py3-none-any.whl", hash = "sha256:6024b58b69089e5a89c347397254e35f1bf02a907728ec7fee9bf0fe837d203a"},
-    {file = "typing_extensions-4.12.1.tar.gz", hash = "sha256:915f5e35ff76f56588223f15fdd5938f9a1cf9195c0de25130c627e4d597f6d1"},
+    {file = "typing_extensions-4.12.2-py3-none-any.whl", hash = "sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d"},
+    {file = "typing_extensions-4.12.2.tar.gz", hash = "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8"},
 ]
 
 [[package]]
@@ -1280,4 +1280,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "a701309230e662d616728683901cfc1cc03d1fc8a76064f072c75d5b26a1b2d2"
+content-hash = "e94afb2f3534a693d43f9663d7c71ef62ce353a0ccc54eb69dab0a38074e96f1"

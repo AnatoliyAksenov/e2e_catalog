@@ -47,7 +47,7 @@ sources = {
 
 def get_links(source, query_params, request_params):
     url = source.get('url').format(**query_params)
-    res = requests.get(url, **request_params)
+    res = requests.get(url, **request_params, verify=False)
     if res.ok:
         parsed =  html5lib.parse(res.text, treebuilder="lxml")
         blinks = parsed.findall(source.get('links'), namespaces=parsed.getroot().nsmap)
@@ -62,7 +62,7 @@ def get_links(source, query_params, request_params):
 
 async def get_text(link, request_params):
     try:
-        res = requests.get(link, **request_params)
+        res = requests.get(link, **request_params, verify=False)
 
         if res.ok:
             content_type = res.headers.get('content-type')
@@ -70,17 +70,19 @@ async def get_text(link, request_params):
             if content_type.lower() in ('application/pdf', 'application/docx', 'application/xlsx'):
                 content = res.content
                 raw = parser.from_buffer(content)
-                return (link, content_type, raw['content'])
+                return (link, content_type, raw['content'], None)
                 
             if content_type.lower() in ('text/html', 'text/html; charset=utf-8'):
                 content = res.text
                 parsed =  html5lib.parse(content, treebuilder="lxml")
                 nodes = parsed.xpath('.//*[not(local-name() = "style") and not(local-name() = "script") and not(local-name() = "li")and not(local-name() = "ul")and not(local-name() = "a")]/text()', namespaces=parsed.getroot().nsmap)
                 text = " ".join([x.strip() for x in nodes if x.strip() and len(x.strip()) > 30])
-                return (link, content_type, text)
+                return (link, content_type, text, None)
     
-            return (link, content_type, res.content)
+            return (link, content_type, None, res.content)
     except requests.exceptions.Timeout as e:
+        return (link, None, None)
+    except Exception as e:
         return (link, None, None)
 
 
@@ -90,13 +92,13 @@ async def process_query(query):
 
     for key, source in sources.items():
         items = get_links(source, {"q": query}, {'headers': headers})
-        ii += items
+        ii += items[0:5] 
 
     lst = [x for x in list(set(ii)) if not any([xx in x for xx in stoplist])]
 
     tasks = [get_text(x, request_params) for x in lst]
     res = await asyncio.gather(*tasks)
 
-    return [ {"link": x[0], "type": x[1], "text": unicodedata.normalize('NFKC', x[2])} for x in res if x and x[1]]
+    return [ {"link": x[0], "type": x[1], "text": unicodedata.normalize('NFKC', x[2] or ''), "data": x[3]} for x in res if x and x[1]]
 
 
