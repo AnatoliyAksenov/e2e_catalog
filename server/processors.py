@@ -143,6 +143,10 @@ async def raw_dashboard_data(connection, idx):
 
     for d in data:
         prepared = {}
+        
+        prepared['type']  = d.get('template_key')
+        prepared['question'] = d.get('question')
+
         c = d.get('content')
         if d.get('template_key') in ('table', 'dates'):
             c = repair_json(c)
@@ -151,5 +155,14 @@ async def raw_dashboard_data(connection, idx):
             df = json_normalize(c)
             if len(df) == 1:
                 prepared['content'] = df.T.to_json(orient='records', index=False, force_ascii=False)
+                
+                res.append(prepared)
             else:
-                pass
+                # looks not good
+                # we not want to get it
+                print(df)
+        else:
+            prepared['content']  = d.get('content')
+            res.append(prepared)
+
+    return res

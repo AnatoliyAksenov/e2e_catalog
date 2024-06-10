@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
+import { useLoaderData } from "react-router-dom"
 import update  from 'immutability-helper'
 import { useSelector } from 'react-redux'
 
@@ -9,7 +10,7 @@ import RGL, { WidthProvider } from "react-grid-layout";
 import  GridLayout  from 'react-grid-layout';
 import { Table } from 'antd';
 
-
+import Markdown from 'react-markdown'
 
 
 import {
@@ -33,7 +34,8 @@ const DEFAULT_LAYOUT = {"w": 8, "h": 9, "x": 0, "y": 0, "i": "", "minW": 3, "max
 
 
 export async function loader( {params}:any ) {
-    return params.id;
+    //return params.id;
+    return 5
   }
 
 
@@ -80,40 +82,76 @@ export async function loader( {params}:any ) {
     questionTheme: QuestionTheme,
   }
 
+  interface State{
+    id: number,
+  }
   const NewDashboard = () => {
 
-    const navigate = useNavigate();
+      const navigate = useNavigate();
 
-    const user = useSelector((state: any) => state.user.value);
-    //if(user.name == "") navigate('/login')
+      const {state}  =  useLocation();
+      const {id} = state;
 
-    const [inputs, setInputs] = useState<Inputs>({} as Inputs);
-    const [config, setConfig]  = useState<Config>({} as Config);
-    const [local, setLocal]   = useState<LocalItem[]>([]);
-    const [height, setHeight]  = useState<number[]>([]);
+      
+  
+      const user = useSelector((state: any) => state.user.value);
+      //if(user.name == "") navigate('/login')
+  
+      const [inputs, setInputs] = useState<Inputs>({} as Inputs);
+      const [config, setConfig]  = useState<Config>({} as Config);
+      const [local, setLocal]   = useState<LocalItem[]>([]);
+      const [height, setHeight]  = useState<number[]>([]);
+
+  
+      useEffect(() => { setInputs({question: "", questionTheme: {}} as Inputs)  },  []);
+      
+  
+      const layout_ref = useRef<GridLayout>(null);
 
 
-
-    useEffect(() => { setInputs({question: "", questionTheme: {}} as Inputs)  },  []);
-
-    const layout_ref = useRef<GridLayout>(null);
-
-
-    const fetchDatabases = async () => {
+      const fetchQuestionThemes = async () => {
         const response = await fetch('http://localhost:8000/api/question_themes');
         const json = await response.json();
         //const res = json.reduce( (r: string[], e: {table_schema: string}) => [...r, e.table_schema], [])
         setConfig({...config, questionThemes: json as QuestionTheme[] })
         
       }
-      useMemo(()=>{ fetchDatabases() }, []);
 
+      const fetchRawDashboardData = async  ()  =>  {
+
+        const response  = await fetch('http://localhost:8000/api/raw_dashboard_data?query_id='+id);
+        const json  = await response.json();
+
+        const new_locals = json.map(  (item:any, index: number)  =>  {
+            return {
+            index: index,
+            id:   index,
+            name: index,
+            label: item.question,
+            layout: {...DEFAULT_LAYOUT, i: item.name},
+            layout_type: item.type,
+            height: DEFAULT_LAYOUT.h * 50,
+            content: item.content,
+
+            }
+        })
+
+        setLocal(new_locals);
+        localStorage.setItem('local', JSON.stringify(new_locals))
+       
+      }
+
+      //useMemo(()=>{ fetchQuestionThemes() }, []);
+
+      useEffect(()=>{fetchRawDashboardData()}, []);
+
+      
       const onResize = (newLayout: any) => {
     
         const l = JSON.parse(JSON.stringify(local));
         newLayout.map( (item:any) => {
           const i = l.findIndex( (e:LocalItem) => e.name == item.i);
-          l[i].chart_height = item.h * 50;
+          l[i].height = item.h * 50;
           l[i].layout = item;
         })
         setLocal(l);
@@ -125,7 +163,8 @@ export async function loader( {params}:any ) {
 
       const grid_layout = local.map( (item:LocalItem, i:number) => {
         return (
-            <Content key={`layout_${i}`}>
+            <Content key={`layout_${i}`} data-grid={item.layout}>
+                {/* <Markdown > { item.content } </Markdown> */}
                 {item.content}
             </Content>
         )

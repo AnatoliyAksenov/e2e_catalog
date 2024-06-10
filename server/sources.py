@@ -47,19 +47,20 @@ class E2ec:
     @staticmethod
     def select_raw_urls(conn,  /, query_id):
         with conn.cursor() as cur:
-            q  = """sselect question
-                          , url
-                          , template_key 
-                          , summary content
-                     from urls
+            q  = """select question
+                         , url
+                         , template_key 
+                         , summary content
+                      from urls
                      where template_key != 'yes_or_no'
-                      and query_id = %(query_id)s
+                       and query_id = %(query_id)s
                      order by ins_date """
             
             p  = {"query_id": query_id}
             cur.execute(q,p)
             res = cur.fetchall()
-            return res
+            cols = [x.name for x in cur.description]
+            return [dict(zip(cols,x)) for x in res]
 
 
 

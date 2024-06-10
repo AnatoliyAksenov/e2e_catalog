@@ -3,7 +3,8 @@ import sys
 
 from time import time
 from fastapi import FastAPI, Response
-from fastapi.middleware.cors import CORSMiddleware
+#from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 
 from contextlib import asynccontextmanager
 
@@ -26,19 +27,18 @@ async def lifespan(app: FastAPI):
     duration  = time() - start
     print(res)
     print(f"Duration: {duration} seconds")
-    if duration > 15:
-        #model.unload(model._model)
-        sys.exit(100)
-        
-    
     yield
     print("Lifespan finished")
+    #todo stop tika server
+
 
 app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost:5173",
-    "localhost:5173"
+    "localhost:5173",
+    "https://localhost:5173",
+
 ]
 
 app.add_middleware(
@@ -49,12 +49,16 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+
+
 @app.get('/ping')
 async def get_ping():
     return Response(status_code=200)
 
 
 app.include_router(add_api)
+
+
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ import './index.css'
 
 import MainPage      from './pages/MainPage'
 import NewDashboard  from './pages/NewDashboard'
+import Welcome from './pages/Welcome'
 
 
 
@@ -20,10 +21,10 @@ const router = createBrowserRouter([
     children: [
         {
           path: "/",
-          element: <div />,
+          element: <Welcome />,
         },
         {
-          path: "/dataset",
+          path: "/dashboards",
           element: <div  />,
         },
         {

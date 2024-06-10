@@ -19,6 +19,14 @@ async def process_query(request: Request, model: Annotated[object, Depends(model
     data = await processes.new_query(connection(), model, question, theme)
     return {"answer": data}
 
+@router.get('/api/raw_dashboard_data')
+async def new_dashboard(request: Request, model: Annotated[object, Depends(model_api)], connection: Annotated[object, Depends(connection)]):
+   idx  = request.query_params.get('query_id')
+   res  = await processes.raw_dashboard_data(connection, idx)
+
+   return res
+
+
 # @router.post('/api/sql_question')
 # async def sql_question(request: Request, model: Annotated[object, Depends(model_api)], connection: Annotated[object, Depends(connection)]):
 #     params = await request.json()
