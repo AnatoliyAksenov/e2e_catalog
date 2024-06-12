@@ -51,4 +51,4 @@ with _conn.cursor() as curr:
                          ins_user TEXT
                    )               
                    """)
-    
+    curr.execute("""create table public.files(key TEXT PRIMARY KEY, filename TEXT)""")

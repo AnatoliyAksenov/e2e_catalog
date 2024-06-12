@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, createRef, LegacyRef} from "react";
 import { useNavigate, useLocation } from "react-router-dom"
 import { useLoaderData } from "react-router-dom"
 import update  from 'immutability-helper'
 import { useSelector } from 'react-redux'
 
-import { Drawer, Menu, MenuProps, Row, Col, Layout, Flex, Button, Divider, Typography, Modal, Input, FloatButton } from 'antd';
+import { useSize } from "ahooks"
+
+import { Drawer, Menu, MenuProps, Row, Col, Layout, Flex, Button, Divider, Typography, Modal, Input, Steps } from 'antd';
 
 import RGL, { WidthProvider } from "react-grid-layout";
 import  GridLayout  from 'react-grid-layout';
@@ -13,12 +15,6 @@ import { Table } from 'antd';
 import Markdown from 'react-markdown'
 
 
-import {
-  ImperativePanelGroupHandle,
-  Panel,
-  PanelGroup,
-  PanelResizeHandle,
-} from "react-resizable-panels";
 
 import './index.css';
 import '/node_modules/react-grid-layout/css/styles.css';
@@ -101,10 +97,8 @@ export async function loader( {params}:any ) {
       const [config, setConfig]  = useState<Config>({} as Config);
       const [local, setLocal]   = useState<LocalItem[]>([]);
       const [height, setHeight]  = useState<number[]>([]);
-
   
       useEffect(() => { setInputs({question: "", questionTheme: {}} as Inputs)  },  []);
-      
   
       const layout_ref = useRef<GridLayout>(null);
 
@@ -137,6 +131,7 @@ export async function loader( {params}:any ) {
         })
 
         setLocal(new_locals);
+
         localStorage.setItem('local', JSON.stringify(new_locals))
        
       }
@@ -150,24 +145,62 @@ export async function loader( {params}:any ) {
     
         const l = JSON.parse(JSON.stringify(local));
         newLayout.map( (item:any) => {
-          const i = l.findIndex( (e:LocalItem) => e.name == item.i);
-          l[i].height = item.h * 50;
+          const i = l.findIndex( (e:LocalItem) => 'layout_'+e.name == item.i);
+          l[i].height = item.h * 50 - 30;
           l[i].layout = item;
         })
         setLocal(l);
         
-        const hh = l.map( (item:LocalItem) => item.height)
-        setHeight(hh);
-        localStorage.setItem('local', JSON.stringify(l))
+        // const hh = l.map( (item:LocalItem) => item.height)
+        // setHeight(hh);
+        // localStorage.setItem('local', JSON.stringify(l))
       }
 
+
+
       const grid_layout = local.map( (item:LocalItem, i:number) => {
+        switch(item.layout_type){
+            case "dates":{
+              
+                return (
+                  <Content  key={`layout_${i}`} data-grid={item.layout}   >
+                    <Content style={{height: item.height, overflowY: 'auto'}}>
+                      <Steps direction="vertical" progressDot
+                           style={{ }}
+                            current={JSON.parse(item.content).length} items={ JSON.parse(item.content).map( (e: any) => {return {"title": e.key, "description": e.value}}) }/>
+                    </Content>
+                  </Content>
+
+                )
+            }
+            case "table":{
+              const content = JSON.parse(item.content)
+
+              return (
+                   <Content  key={`layout_${i}`} data-grid={item.layout} style={{height: item.height}}>
+                    <Table size="small" scroll={ {y: item.height } } tableLayout='auto' columns={[{key:'parameter', dataIndex:"parameter", title: 'Parameter'},{ key:'value', dataIndex:'value', title: 'Value'}]} dataSource={content} pagination={false} />
+                     {/* <Content>{item.content}</Content> */}
+                   </Content>
+              )
+
+            }
+            case "summarization":{
+              return (
+                   <Content  key={`layout_${i}`} data-grid={item.layout} style={{height: item.height}}>
+                    <Markdown>{item.content}</Markdown>
+                   </Content>
+              )
+            
+            }
+        }
+
         return (
             <Content key={`layout_${i}`} data-grid={item.layout}>
                 {/* <Markdown > { item.content } </Markdown> */}
                 {item.content}
             </Content>
         )
+        
       })
 
       return (
@@ -196,10 +229,7 @@ export async function loader( {params}:any ) {
 
 
 
-      <Modal title="Interactive SQL Chat" open={config.visible} onOk={ ()=>{ setConfig({...config, visible: false}) }} okText="Process" destroyOnClose={false} onCancel={ () =>{ setConfig({...config, visible: false}) }} cancelText="Hide" width={650}>
-        <Input placeholder="Enter your question" onChange={ (e) => setInputs({...inputs, question: e.target.value})}/>      
-        
-      </Modal>
+      
         </>
       )
 

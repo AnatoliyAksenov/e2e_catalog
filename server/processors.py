@@ -2,17 +2,25 @@ import json
 import time
 
 import asyncio
+import pendulum
 
 from json_repair import repair_json
 
 from server.sources import E2ec
+from server.sources import FILE_STORAGE_BUCKET
 
 from server.templates import templates
 from server.utils import process_query
 
-from pandas import json_normalize
 
+import pandas as pd
 
+import random
+import string
+
+from time import time
+
+from tika import parser
 
 
 async def what_we_do(connection, model, question, theme):
@@ -135,6 +143,14 @@ async def new_query(connection, model, caption, theme):
     return idx
 
 
+def parse_date(dd):
+    try:
+        return pendulum.parse(dd).strftime('%Y-%m-%dT%H:%M:%S')
+    except:
+        pass
+    return dd
+
+
 async def raw_dashboard_data(connection, idx):
 
     data = E2ec.select_raw_urls(connection, query_id=idx)
@@ -149,20 +165,59 @@ async def raw_dashboard_data(connection, idx):
 
         c = d.get('content')
         if d.get('template_key') in ('table', 'dates'):
-            c = repair_json(c)
-            c = json.loads(c)
+            try:
+              c = repair_json(c)
+              c = json.loads(c)
+            except:
+                continue 
 
-            df = json_normalize(c)
+            try:
+                df = pd.json_normalize(c)
+            except:
+                pass
+                df = pd.DataFrame()
+
             if len(df) == 1:
-                prepared['content'] = df.T.to_json(orient='records', index=False, force_ascii=False)
+                dd = df.T.reset_index().reset_index()
+                dd.columns = ['key','parameter', 'value']
+                # works well but too overwhelmed
+                # if prepared.get('type') == 'dates':
+                #     dd.key = dd.key.apply(lambda x: parse_date(x))
+                prepared['content'] = dd.to_json(orient='records', index=False, force_ascii=False)
                 
                 res.append(prepared)
             else:
                 # looks not good
                 # we not want to get it
-                print(df)
+                # print(df)
+                pass
+
         else:
             prepared['content']  = d.get('content')
             res.append(prepared)
 
     return res
+
+
+async def store_file(connection, file_storage, content, file_name):
+    # we are using seed and there we have to use new seed to get unique key
+    key = "".join(random.Random(time()).choices(string.ascii_letters,k=32))
+    file_storage.put_object(FILE_STORAGE_BUCKET, key, content.file, content.size)
+    E2ec.insert_file(connection, file_name=file_name, key=key, content_type=content.content_type)
+    return key
+
+
+async def query(connection, model, file_storage, data):
+
+    temperature = data.get('temperature',0.1)
+    
+    contents = [file_storage.get_object(FILE_STORAGE_BUCKET, x) for x in data.get('files',[])]
+    files = [E2ec.select_file(connection, x) for x in data.get('files',[])]
+
+    parsed = [parser.from_buffer(x.data) for x in contents]
+
+    content = "\n".join([x.get('content') for x in parsed if x.get('content')])
+
+    print(len(content))
+
+    

@@ -1,4 +1,6 @@
+import os
 import psycopg2
+import minio
 
 class E2ec:
 
@@ -62,12 +64,44 @@ class E2ec:
             cols = [x.name for x in cur.description]
             return [dict(zip(cols,x)) for x in res]
 
+    @staticmethod
+    def insert_file(conn, /, key, file_name, content_type):
+        with conn.cursor() as cur:
+            q  = """insert into files(key, file_name, content_type) values  ( %(key)s,  %(file_name)s, %(content_type)s)"""
+            p  = {"key": key,  'file_name': file_name, 'content_type': content_type}
+            cur.execute(q,p)
+            
+            return True
+
+    @staticmethod
+    def select_file(conn, /, key):
+        with conn.cursor() as cur:
+            q   = """select file_name, content_type
+                      from files
+                     where key  =  %(key)s"""
+            p   = {"key": key}
+            cur.execute(q,p)
+            res  = cur.fetchall()
+            cols  = [x.name for x in cur.description]
+            return [dict(zip(cols,x)) for x in res]
 
 
 
-_conn2 = psycopg2.connect(database='e2ec', user='e2ec', password='e2ec', host='localhost', port='5432')
+config = {k:v for k,v in os.environ.items() if k.startswith('E2EC_')}
+
+
+
+_conn2 = psycopg2.connect(database=config.get('DATABASE', 'e2ec'), user=config.get('DATABASE_USER', 'e2ec'), password=config.get('DATABASE_PASSWORD', 'e2ec'), host=config.get('DATABASE_HOST', 'localhost'), port=config.get('DATABASE_PORT', '5432'))
 _conn2.set_session(autocommit=True)
+
+
+_file_storage =  minio.Minio(config.get('S3_HOST_PORT','localhost:9000'), access_key=config.get('S3_ACCESS_KEY','9JrrlWgZNPslN49P0ylR'), secret_key=config.get('S3_SECRET_KEY','KYXCbEmfZlxp9QJqkWWvxB0ZvwiAd7LoxCxo5w8n'), secure=False)
+
+FILE_STORAGE_BUCKET  = config.get('S3_BUCKET',  'e2ec')
 
 def connection():
 
     return _conn2
+
+def file_storage():
+    return _file_storage

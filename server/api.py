@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, UploadFile
 from typing import Annotated
 from fastapi import Depends
 
 from server.model import model_api
 from server.sources import connection
+from server.sources import file_storage
 
 import server.processors as processes
 router = APIRouter()
@@ -25,6 +26,24 @@ async def new_dashboard(request: Request, model: Annotated[object, Depends(model
    res  = await processes.raw_dashboard_data(connection, idx)
 
    return res
+
+
+@router.post("/api/uploadfile/")
+async def create_upload_file(request: Request, file: UploadFile, connection: Annotated[object, Depends(connection)], file_storage: Annotated[object, Depends(file_storage)]):
+
+    key = await processes.store_file(connection, file_storage, file, file.filename)
+    return {"filename": file.filename, "key": key}
+
+
+@router.post('/api/process_query')
+async def process_query(request: Request, model: Annotated[object, Depends(model_api)], connection: Annotated[object, Depends(connection)], file_storage: Annotated[object, Depends(file_storage)]):
+    data = await request.json()
+
+    print(data)
+
+    res = await processes.query(connection, model, file_storage, data)
+    return {"answer": res}
+
 
 
 # @router.post('/api/sql_question')
