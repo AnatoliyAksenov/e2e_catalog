@@ -23,3 +23,6 @@ Run backend:
 export E2EC_DATABASE=e2ec E2EC_DATABASE_USER=e2ec E2EC_DATABASE_PASSWORD=e2ec E2EC_DATABASE_HOST=localhost E2EC_DATABASE_PORT=5432
 export E2EC_S3_HOST_PORT='localhost:9000' E2EC_S3_ACCESS_KEY=9JrrlWgZNPslN49P0ylR E2EC_S3_SECRET_KEY=KYXCbEmfZlxp9QJqkWWvxB0ZvwiAd7LoxCxo5w8n E2EC_S3_BUCKET=e2ec
 ```
+
+Docker with GPU
+https://linuxconfig.org/setting-up-nvidia-cuda-toolkit-in-a-docker-container-on-debian-ubuntu

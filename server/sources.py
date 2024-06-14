@@ -84,6 +84,18 @@ class E2ec:
             res  = cur.fetchall()
             cols  = [x.name for x in cur.description]
             return [dict(zip(cols,x)) for x in res]
+        
+    @staticmethod
+    def select_queries(conn, /, date_from='1970-01-01'):
+        with conn.cursor() as cur:
+            q = """select *
+                    from queries
+                    where ins_date >= %(date_from)s"""
+            p = {"date_from": date_from}
+            cur.execute(q,p)
+            res  = cur.fetchall()
+            cols  = [x.name for x in cur.description]
+            return [dict(zip(cols,x)) for x in res]
 
 
 

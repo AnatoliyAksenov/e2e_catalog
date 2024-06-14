@@ -220,4 +220,8 @@ async def query(connection, model, file_storage, data):
 
     print(len(content))
 
-    
+
+async def report_list(connection, date_from):
+    data  = E2ec.select_queries(connection, date_from)
+
+    return data

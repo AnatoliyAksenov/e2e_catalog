@@ -12,6 +12,7 @@ import './index.css'
 import MainPage      from './pages/MainPage'
 import NewDashboard  from './pages/NewDashboard'
 import Welcome from './pages/Welcome'
+import ReportList from './pages/ReportList'
 
 
 
@@ -25,7 +26,7 @@ const router = createBrowserRouter([
         },
         {
           path: "/dashboards",
-          element: <div  />,
+          element: <ReportList  />,
         },
         {
           path: "/new_dashboard",

@@ -1,0 +1,86 @@
+services:
+    backend:
+        depends_on:
+          - llm
+          - db
+          - minio
+        build:
+            context: .
+            args:
+                - E2EC_DATABASE=e2ec 
+                - E2EC_DATABASE_USER=e2ec 
+                - E2EC_DATABASE_PASSWORD=e2ec 
+                - E2EC_DATABASE_HOST=db 
+                - E2EC_DATABASE_PORT=5431
+                - E2EC_S3_HOST_PORT='minio:9002' 
+                - E2EC_S3_ACCESS_KEY=9JrrlWgZNPslN49P0ylR 
+                - E2EC_S3_SECRET_KEY=KYXCbEmfZlxp9QJqkWWvxB0ZvwiAd7LoxCxo5w8n 
+                - E2EC_S3_BUCKET=e2ec
+        ports:
+            - "8000:8000"
+
+    frontend:
+        build:
+            context: .
+            dockerfile: Dockerfile_frontend
+        ports:
+          - "8080:8080"
+
+    llm:
+        build:
+            context: .
+            dockerfile: Dockerfile_llamacpp
+        ports:
+            - "7117:7117"
+    db:
+        image: postgres
+        restart: always
+        environment:
+            POSTGRES_PASSWORD: e2ec
+            POSTGRES_USER: e2ec
+            POSTGRES_DB: e2ec
+        ports:
+          - "5431:5432"
+
+    preparedb:
+        image: postgres
+        depends_on:
+          - db
+        environment:
+            PGPASSWORD: e2ec
+        volumes:
+          - /home/anatoliy/e2e_catalog:/scripts
+        entrypoint: >
+            /bin/sh -c "
+            ls -lh /scripts/;
+            psql -h db -U e2ec e2ec -a -f scripts/scripts/postgres.sql;
+            "
+
+    minio:
+        image: minio/minio
+        ports:
+          - "9002:9000"
+          - "9003:9001"
+        environment:
+          - "MINIO_ACCESS_KEY=9JrrlWgZNPslN49P0ylR"
+          - "MINIO_SECRET_KEY=wKYXCbEmfZlxp9QJqkWWvxB0ZvwiAd7LoxCxo5w8n"
+        command: server /data
+
+    createbuckets:
+        image: minio/mc
+        depends_on:
+          - minio
+        entrypoint: >
+          /bin/sh -c "
+          /usr/bin/mc config host add myminio http://minio:9000 9JrrlWgZNPslN49P0ylR wKYXCbEmfZlxp9QJqkWWvxB0ZvwiAd7LoxCxo5w8n;
+          /usr/bin/mc mb myminio/e2ec;
+          /usr/bin/mc policy download myminio/e2ec;
+          exit 0;
+          "
+volumes:
+  scripts:
+    driver: local
+    driver_opts:
+      type: none
+      device: '/home/anatoliy/e2e_catalog'
+      o: bind

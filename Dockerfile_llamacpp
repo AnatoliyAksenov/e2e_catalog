@@ -1,0 +1,17 @@
+FROM nvidia/cuda:12.4.0-base-ubuntu22.04 AS base
+
+RUN apt-get update && apt-get install wget python3 python3-pip cuda-cudart-12-4 cuda-nvcc-12-4 cuda-nvrtc-12-4 libcublas-12-4 cuda-toolkit-12-4 -y --no-install-recommends
+
+RUN pip install poetry==1.8.3
+
+COPY . /app
+
+WORKDIR /app
+
+RUN poetry config virtualenvs.create false ; poetry install --no-root
+
+RUN wget -O MODEL.gguf https://huggingface.co/bartowski/openchat-3.6-8b-20240522-GGUF/resolve/main/openchat-3.6-8b-20240522-Q4_K_M.gguf?download=true --no-check-certificate
+
+#  python -m "llama_cpp.server" --model /home/anatoliy/openchat-3.6-8b-20240522-IQ4_NL.gguf --n_gpu_layers -1 --n_ctx 11000 --port 7117
+
+CMD ["python3", "-m", "llama_cpp.server", "--model", "/app/MODEL.gguf", "--n_gpu_layers", "-1", "--n_ctx", "11000",  "--port", "7117"]

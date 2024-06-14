@@ -1,19 +1,47 @@
-import {useState, useRef} from'react'
-import {Layout, Button, Modal, Input, Checkbox, Slider, Form, Upload,  UploadFile} from 'antd'
+import {useState, useRef, useEffect} from'react'
+import {Layout, Button, Modal, Input, Checkbox, Slider, Form, Upload,  UploadFile, Card, Avatar, Skeleton, Row, Col, Typography} from 'antd'
 import { useNavigate } from "react-router-dom"
+
+import {SettingOutlined, EditOutlined, EllipsisOutlined, RightSquareOutlined} from '@ant-design/icons';
+
+
+import AceEditor from "react-ace";
+
+import "ace-builds/src-noconflict/mode-django";
+import "ace-builds/src-noconflict/theme-github";
+import "ace-builds/src-noconflict/ext-language_tools"
+
+import browse from '../../assets/browse-svgrepo-com.svg'
+import date from '../../assets/date-svgrepo-com.svg'
+import document from '../../assets/document-svgrepo-com.svg'
+import inspiration from '../../assets/inspiration-svgrepo-com.svg'
+import picture from '../../assets/picture-svgrepo-com.svg'
+import target from '../../assets/target-svgrepo-com.svg'
 
 const {Content} = Layout
 
-interface Config{
-    visible: boolean
-    use_internet?: boolean
+const {Meta} = Card;
+
+interface EditorConfig{
+  template: string,
 }
 
+interface Config{
+    visible: boolean,
+    editor_visible?: boolean,    
+    editor_key?: string,
+    use_internet?: boolean,
+    editor_configs: {[key: string]:EditorConfig}
+}
+
+
+
 const Welcome = () => {
+
     const navigate = useNavigate()
 
-    const [config, setConfig]  =  useState<Config>({visible: false})
-    const [inputs, setInputs]   =  useState({question: '', temperature: 5})
+    const [config, setConfig]  =  useState<Config>({visible: false, editor_configs: {}})
+    const [inputs, setInputs]   =  useState({question: '', temperature: 0.1, editor: ''})
     const [items, setItems] = useState<any[]>([])
 
     const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -21,6 +49,16 @@ const Welcome = () => {
     const [form] =   Form.useForm()
 
     const [questionTheme, setQuestionTheme] = useState('Финансы')
+
+
+    useEffect(()  => {
+      const template_data = {
+        'simple_rules': {
+          "template": "Super simple template for jinja2"
+        }
+      }
+      setConfig({...config, editor_configs: template_data})
+    }, [])
 
     const fetchNewQuestion  =  async ()  =>  {
 
@@ -41,12 +79,29 @@ const Welcome = () => {
         return json;
     }
 
+    
 
+    const fetchSaveTemplate  =  async ()  =>  {
+
+      const init = {
+          method: "POST", 
+          body: JSON.stringify({
+              template_key: config.editor_key,
+              template: inputs.editor
+
+          })
+      }
+      
+      const response  = await fetch(`http://localhost:8000/api/save_template`, init );
+      const json  = await response.json();
+
+      return json;
+    }
 
     const onUploadChange = (info:any) => {
         console.log("onUploadChange: ", info);
         setFileList([...info.fileList]);
-      };
+    };
 
     const onOk = () => {
         fetchNewQuestion().then((data)  => {
@@ -60,19 +115,122 @@ const Welcome = () => {
         
     }
 
+    const onSaveEditor  =  ()  =>  {
+          fetchSaveTemplate().then((data)   =>  {
+            
+          })
+    }
+    
+
+    const configEditor = (key: string) => {
+
+      const template = config.editor_configs[key].template || '';
+
+      setInputs({...inputs, editor: template }); 
+      setConfig({...config, editor_visible: true, editor_key: key}); 
+    }
+
     return (
         <>
             <Content>
-                <h1>Welcome to the App</h1>
-                <Button onClick={ () => {
-                    navigate('/new_dashboard',{state:{id: 5}})
-                }}> Go to 5th dashboard!</Button>
-                <Button onClick={ () => {
-                    navigate('/new_dashboard',{state:{id: 6}})
-                }}> Go to 6th dashboard!</Button>
-                <Button onClick={ () => {
-                    navigate('/new_dashboard',{state:{id: 7}})
-                }}> Go to 7th dashboard!</Button><br />
+                <h1>Welcome to the <strong style={{color: 'white', backgroundColor: '#A0A0A0', padding: '2px'}}>E2E</strong>Catalog</h1>
+
+                <Row justify="center" gutter={[16,16]}>
+                    <Col>
+                    <Card
+                      style={{ width: 400, marginTop: 26 }}
+                      actions={[
+                        <RightSquareOutlined key="run" />,
+                        <SettingOutlined key="setting" />,
+                        <EditOutlined key="edit" onClick={() => { configEditor('simple_rules') } }/>,
+                      ]}
+                    >
+                      
+                        <Meta
+                          avatar={<Avatar src={browse} style={{width: 90, height: 90}}/>}
+                          title="Search by simple rules"
+                          description="Description of the question"
+                        />
+                     
+                    </Card>
+                    </Col>
+                    <Col>
+                    <Card
+                      style={{ width: 400, marginTop: 26 }}
+                      actions={[
+                        <RightSquareOutlined key="run" />,
+                        <SettingOutlined key="setting" />,
+                        <EditOutlined key="edit" />,
+                      ]}
+                    >
+                      
+                        <Meta
+                          avatar={<Avatar src={date} style={{width: 90, height: 90}}/>}
+                          title="Search by simple rules"
+                          description="Description of the question"
+                        />
+                     
+                    </Card>
+                    </Col>
+                    <Col>
+                    <Card
+                      style={{ width: 400, marginTop: 26 }}
+                      actions={[
+                        <RightSquareOutlined key="run" />,
+                        <SettingOutlined key="setting" />,
+                        <EditOutlined key="edit" />,
+                      ]}
+                    >
+                      
+                        <Meta
+                          avatar={<Avatar src={document} style={{width: 90, height: 90}}/>}
+                          title="Search by simple rules"
+                          description="Description of the question"
+                        />
+                     
+                    </Card>
+                    </Col>
+                </Row>
+                <Row justify="center">
+                    <Col >
+                        <Card
+                          style={{ width: 400, marginTop: 26 }}
+                          actions={[
+                            <RightSquareOutlined key="run" />,
+                        <SettingOutlined key="setting" />,
+                        <EditOutlined key="edit" />,
+                          ]}
+                        >
+                          
+                            <Meta
+                              avatar={<Avatar src={inspiration} style={{width: 90, height: 90}}/>}
+                              title="Search by simple rules"
+                              description="Description of the question"
+                            />
+                         
+                        </Card>
+                    </Col>
+                    <Col>
+                    <Card
+                      style={{ width: 400, marginTop: 26 }}
+                      actions={[
+                        <RightSquareOutlined key="run" />,
+                        <SettingOutlined key="setting" />,
+                        <EditOutlined key="edit" />,
+                      ]}
+                    >
+                      
+                        <Meta
+                          avatar={<Avatar src={picture} style={{width: 90, height: 90}}/>}
+                          title="Search by simple rules"
+                          description="Description of the question"
+                        />
+                     
+                    </Card>
+                    </Col>
+                </Row>
+
+
                 <Button onClick={ ()  =>  { setConfig({...config, visible: true}) }}> new question</Button>
 
             </Content>
@@ -96,8 +254,27 @@ const Welcome = () => {
 
                 </Form>
             </Modal>
+
+            <Modal open={config.editor_visible} title="Template editor" width={1000} onCancel={ () => {setConfig({...config, editor_visible: false})  }} okText="Save" onOk={ onSaveEditor }>
+                <Typography.Title level={5}>Template editor (Jinja2)</Typography.Title>
+
+                <AceEditor
+                  mode="java"
+                  theme="github"
+                  onChange={ (value) =>  { setInputs({...inputs, editor: value}) } }
+                  name="acedEditor"
+                  editorProps={{ $blockScrolling: true }}
+                  setOptions={{
+                    enableBasicAutocompletion: true,
+                    enableLiveAutocompletion: true,
+                    enableSnippets: true
+                  }}
+                  value={inputs.editor}
+                />
+                <Typography.Link href='https://jinja.palletsprojects.com/en/3.1.x/api/#basics' target='_blank'>Jinja 2 documentation</Typography.Link>
+            </Modal>
         </>
     )
-}
+  }
 
 export default Welcome

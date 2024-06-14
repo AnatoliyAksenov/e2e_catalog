@@ -36,7 +36,7 @@ async def create_upload_file(request: Request, file: UploadFile, connection: Ann
 
 
 @router.post('/api/process_query')
-async def process_query(request: Request, model: Annotated[object, Depends(model_api)], connection: Annotated[object, Depends(connection)], file_storage: Annotated[object, Depends(file_storage)]):
+async def query(request: Request, model: Annotated[object, Depends(model_api)], connection: Annotated[object, Depends(connection)], file_storage: Annotated[object, Depends(file_storage)]):
     data = await request.json()
 
     print(data)
@@ -44,6 +44,12 @@ async def process_query(request: Request, model: Annotated[object, Depends(model
     res = await processes.query(connection, model, file_storage, data)
     return {"answer": res}
 
+
+@router.get('/api/report_list')
+async def report_list(request: Request, model: Annotated[object, Depends(model_api)], connection: Annotated[object, Depends(connection)]):
+    date_from = request.query_params.get('date_from', '1970-01-01')
+    res  = await processes.report_list(connection, date_from)
+    return res
 
 
 # @router.post('/api/sql_question')
