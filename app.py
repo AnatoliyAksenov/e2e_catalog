@@ -8,7 +8,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from contextlib import asynccontextmanager
 
-from server.api import router as add_api
+from server.api import router as add_api, set_duration
 
 from server.model import model_api
 from server.templates import templates
@@ -27,6 +27,9 @@ async def lifespan(app: FastAPI):
     duration  = time() - start
     print(res)
     print(f"Duration: {duration} seconds")
+    set_duration(duration)
+    #TODO Add db connection checking
+    #TODO Add minio connection checking
     yield
     print("Lifespan finished")
     #todo stop tika server

@@ -75,7 +75,13 @@ main = {
         %(end)s
         %(user)s If numeric data does not exists return nothing.%(end)s
         %(assistant)s
-        """
+        """,
+    "simple_question": """%(system)s You are a smart competitior. %(end)s
+    %(user)sFind out and return an asnwer to the question "{q}" by text below.%(end)s
+    %(user)s The given text:
+    {text}%(end)s
+    %(assistant)s
+    """
 }
 
 
@@ -103,6 +109,10 @@ openchat = {
     "table":{
         "prompt": main.get("table")   % openchat36,
         "temperature": 0.15,
+    },
+    "simple_question":{
+        "prompt": main.get("simple_question")% openchat36,
+         "temperature":  0.15,
     }
 }
 
@@ -129,6 +139,10 @@ llama =  {
     },
     "table":{
         "prompt": main.get("table")   % llama3,
+        "temperature":  0.5,
+    },
+    "simple_question":{
+        "prompt": main.get("simple_question")% llama3,
         "temperature":  0.5,
     }
 }

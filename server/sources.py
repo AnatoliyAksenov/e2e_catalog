@@ -1,6 +1,15 @@
 import os
+import json
 import psycopg2
 import minio
+
+def update(d, u):
+    for k, v in u.items():
+        if isinstance(v, dict):
+            d[k] = update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
 
 class E2ec:
 
@@ -18,10 +27,10 @@ class E2ec:
 
 
     @staticmethod
-    def insert_queries(conn, /, caption, theme):
+    def insert_queries(conn, /, caption, theme, params=None):
         with conn.cursor() as cur:
-            q = """insert into queries(query, theme) values  ( %(query)s, %(theme)s) returning id"""
-            p = {"query": caption, 'theme': theme}
+            q = """insert into queries(query, theme, params) values  ( %(query)s, %(theme)s, %(params)s) returning id"""
+            p = {"query": caption, 'theme': theme, 'params': json.dumps(params, ensure_ascii=False, default=str)}
             cur.execute(q,p)
             res = cur.fetchone()[0]
 
@@ -35,6 +44,33 @@ class E2ec:
             cur.execute(q,p)
 
             return True
+        
+    @staticmethod
+    def update_query_status(conn, /, query_id, status):
+        with conn.cursor() as cur:
+            q = """update queries set status = %(status)s where id = %(query_id)s"""
+            p = {"query_id": query_id,  'status': status}
+            cur.execute(q,p)
+
+            return True
+            
+    @staticmethod
+    def update_query_params(conn, /, query_id, params):
+        with conn.cursor() as cur:
+
+            # jsonb_set and jsonb_insert cannot do that correctly
+            q = """select  params from queries where id = %(query_id)s"""
+            p = {"query_id": query_id}
+            cur.execute(q,p)
+            res = cur.fetchone()[0]
+            resj = json.loads(res)
+            update(resj, params)
+            q = """update queries set params = %(params)s where id = %(query_id)s"""
+            p = {"query_id": query_id,  'params': json.dumps(params, ensure_ascii=False, default=str)}
+            cur.execute(q,p)
+
+            return True
+        
         
     @staticmethod
     def insert_query_logs(conn, /, query_id, step, status, log=None):
@@ -96,7 +132,75 @@ class E2ec:
             res  = cur.fetchall()
             cols  = [x.name for x in cur.description]
             return [dict(zip(cols,x)) for x in res]
+        
 
+    @staticmethod
+    def get_query(conn, /, query_id):
+        with conn.cursor() as cur:
+            q = """select *
+                    from queries
+                    where id = %(query_id)s"""
+            p = {"query_id": query_id}
+            cur.execute(q,p)
+            res  = cur.fetchone()
+            cols  = [x.name for x in cur.description]
+            return dict(zip(cols,res))
+
+
+    @staticmethod
+    def update_template(conn, /, question_key, template):
+        with conn.cursor() as cur:
+            q = """update questions_config
+                    set question_template = %(template)s
+                    where question_key = %(question_key)s"""
+            p = {"question_key": question_key, "template": template}
+            cur.execute(q,p)
+            return True
+        
+    @staticmethod
+    def update_values(conn, /, question_key, variables):
+        with conn.cursor() as cur:
+            q = """update questions_config
+                    set question_values = %(variables)s
+                    where question_key = %(question_key)s"""
+            p = {"question_key": question_key, "variables": json.dumps(variables, ensure_ascii=False, default=str)}
+            cur.execute(q,p)
+            return True
+        
+    @staticmethod
+    def get_questions_configs(conn):
+        with conn.cursor() as cur:
+            q = """select id
+                        , question_key
+                        , label
+                        , description     
+                        , question_template template
+                        , question_values::json question_values
+                     from questions_config
+                     """
+
+            cur.execute(q)
+            res  = cur.fetchall()
+            cols  = [x.name for x in cur.description]
+            return [dict(zip(cols,x)) for x in res]
+        
+    @staticmethod
+    def get_question_config(conn, /, question_key):
+        with conn.cursor() as cur:
+            q = """select id
+                        , question_key
+                        , label
+                        , description     
+                        , question_template template
+                        , question_values::json question_values
+                     from questions_config
+                    where question_key  =  %(question_key)s
+                     """
+            p = {"question_key": question_key}
+            cur.execute(q, p)
+            res  = cur.fetchone()
+            cols  = [x.name for x in cur.description]
+            return dict(zip(cols,res))
 
 
 config = {k:v for k,v in os.environ.items() if k.startswith('E2EC_')}

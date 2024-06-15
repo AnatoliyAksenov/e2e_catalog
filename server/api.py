@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, UploadFile
+from fastapi import APIRouter, Request, UploadFile, BackgroundTasks
 from typing import Annotated
 from fastapi import Depends
 
@@ -8,6 +8,16 @@ from server.sources import file_storage
 
 import server.processors as processes
 router = APIRouter()
+
+_duration = 100
+
+def set_duration(duration):
+    global _duration
+    _duration  =  duration
+
+@router.get('/api/duration')
+async def duration(request: Request):
+    return  {"duration": _duration}
 
 
 @router.get('/api/process_query')
@@ -52,16 +62,35 @@ async def report_list(request: Request, model: Annotated[object, Depends(model_a
     return res
 
 
-# @router.post('/api/sql_question')
-# async def sql_question(request: Request, model: Annotated[object, Depends(model_api)], connection: Annotated[object, Depends(connection)]):
-#     params = await request.json()
-#     query = params.get('query')
-#     template = params.get('template')
-#     database = params.get('database')
-#     sql = params.get('sql')
+@router.post('/api/save_template')
+async def save_template(request: Request, connection: Annotated[object, Depends(connection)]):
+    params = await request.json()
 
-#     res = process.main_pipeline(model, connection.get('connection'), query, template, database, sql)
-#     print(res)
-#     return res
+    res = await processes.save_template( connection, params)
+    return res
 
 
+@router.post('/api/save_variables')
+async def update_values(request: Request, connection: Annotated[object, Depends(connection)]):
+    params = await request.json()
+
+    res = await processes.update_values( connection, params)
+    return res
+
+
+@router.get('/api/questions_config')
+async def questions_config(request: Request, connection: Annotated[object, Depends(connection)]):
+ 
+    res  = await processes.questions_config(connection)
+    return res
+
+
+@router.post('/api/company_query')
+async def query(request: Request, model: Annotated[object, Depends(model_api)], connection: Annotated[object, Depends(connection)], file_storage: Annotated[object, Depends(file_storage)], background_tasks: BackgroundTasks):
+    data = await request.json()
+
+    res = await processes.register_question(connection, data)
+    query_id = res
+    background_tasks.add_task( processes.company_query,  connection, model, file_storage, query_id, data)
+
+    return {"id": query_id}

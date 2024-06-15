@@ -23,7 +23,7 @@ with _conn.cursor() as curr:
                          ins_user TEXT,
                          status INT
                      );
-    """)
+                """)
     
     
     curr.execute("""CREATE TABLE public.query_logs (
@@ -34,7 +34,8 @@ with _conn.cursor() as curr:
                          log TEXT,
                          ins_date TIMESTAMP NOT NULL DEFAULT now(),
                          inst_user TEXT
-                     )""")
+                     )
+                """)
     
     
     curr.execute("""create table public.urls(
@@ -51,4 +52,26 @@ with _conn.cursor() as curr:
                          ins_user TEXT
                    )               
                    """)
+    
     curr.execute("""create table public.files(key TEXT PRIMARY KEY, filename TEXT)""")
+
+    curr.execute("""create table public.questions_config(
+                        id serial PRIMARY key,
+                        question_key Text,
+                        question_template TEXT,
+                        question_values TEXT,
+                        ins_date TIMESTAMP NOT NULL DEFAULT now(),
+                        ins_user TEXT
+                    )
+                 """)
+    
+ins = """insert into public.questions_config (question_key, label, description) values('simple_question', 'Простые запросы', 'Выполняется подбор вопросов и поиск ответов в интернете');
+insert into public.questions_config (question_key, label, description) values('additional_companies', 'Запрос по компании', 'Выполняется поиск ответов по компании в выбранных источниках');
+insert into public.questions_config (question_key, label, description) values('additional_persons', 'Запрос по персонам', 'Выполняется ппоиск ответов по персоне в выбранных источниках');
+insert into public.questions_config (question_key, label, description) values('aaditional_products', 'Запрос по продуктам', 'Выполняется поиск ответов по продукту в выбранных источниках');
+insert into public.questions_config (question_key, label, description) values('files_companies', 'Запрос по компаннии 2', 'Выполняется поиск ответов по внутренней базе RAG');
+"""
+
+for x in ins.split(';'):
+    if x.strip():
+        curr.execute(x)

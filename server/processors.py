@@ -221,7 +221,98 @@ async def query(connection, model, file_storage, data):
     print(len(content))
 
 
+async def company_query(connection, model, file_storage, query_id, data):
+
+    key = data.get('question_key')
+
+    
+    contents = [file_storage.get_object(FILE_STORAGE_BUCKET, x) for x in data.get('files',[])]
+    files = [E2ec.select_file(connection, x) for x in data.get('files',[])]
+
+    parsed = [parser.from_buffer(x.data) for x in contents]
+
+    content = "\n".join([x.get('content') for x in parsed if x.get('content')])
+
+    f = data.get('files')
+    temperature = data.get('temperature', 0.1)
+    use_internet = data.get('use_internet', False)
+    use_closed_resources = data.get('use_closed_resources',False)
+    additional_questions = data.get('additional_questions', [])
+
+    conf = E2ec.get_question_config(connection, question_key=key)
+    query = E2ec.get_query(connection, query_id)
+    closed_res = None
+
+    if not use_internet and content:
+        # search only in content
+        variables = {}
+        for q in conf.get('question_values'):
+            question = q.get('variable')
+            key = q.get('key')
+
+            prompt = templates.get('simple_question').get('prompt')
+            temp = templates.get('simple_question').get('temperature', 0.5)
+            prompt = prompt.format(q=question, text=content)
+            
+
+            res = model.call(prompt, temp=temp)
+            variables[key] = res
+
+        E2ec.update_query_params(connection, query_id, params=variables)
+        E2ec.update_query_status(connection, query_id, 0)
+
+        return
+    
+    if use_closed_resources:
+        closed_res = E2ec.get_closed_resources(connection)
+
+    # get inn
+
+
+
+
 async def report_list(connection, date_from):
     data  = E2ec.select_queries(connection, date_from)
 
+    return data
+
+
+async def save_template(connection, params):
+    question_key = params.get('template_key')
+    template = params.get('template')
+    data = E2ec.update_template(connection, question_key, template)
+
+    return data
+
+
+async def update_values(connection, params):
+    question_key  = params.get('question_key')
+    variables  = params.get('variables')
+    data  = E2ec.update_values(connection, question_key, variables)
+
+    return data
+
+
+
+async def questions_config(connection):
+
+    data = E2ec.get_questions_configs(connection)
+
+    return data
+
+
+async def register_question(connection, params):
+    question_key   = params.get('question_key')
+    question  = params.get('question')
+    theme  = params.get('theme')
+
+    params = {
+       "files": params.get('files', []),
+       "temperature": params.get('temperature', 0.1),
+       "use_internet": params.get('use_internet', False),
+       "use_closed_resources": params.get('use_closed_resources', False),
+       "additional_questions": params.get('additional_questions', []),
+    }
+
+    data  = E2ec.insert_queries(connection, caption=question, theme=question_key, params=params)
     return data
