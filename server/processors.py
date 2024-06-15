@@ -12,6 +12,7 @@ from server.sources import FILE_STORAGE_BUCKET
 from server.templates import templates
 from server.utils import process_query
 
+from jinja2 import Environment, BaseLoader
 
 import pandas as pd
 
@@ -21,6 +22,8 @@ import string
 from time import time
 
 from tika import parser
+
+import pdkkit
 
 
 async def what_we_do(connection, model, question, theme):
@@ -297,6 +300,25 @@ async def update_values(connection, params):
 async def questions_config(connection):
 
     data = E2ec.get_questions_configs(connection)
+
+    return data
+
+
+async def question_status(connection, query_id):
+
+    data = E2ec.get_query(connection, query_id)
+
+    return data.get('status')
+
+
+async def question_report(connection, query_id):
+
+    data = E2ec.get_query(connection, query_id)
+
+    conf = E2ec.get_question_config(connection, question_key=data.get('theme'))
+
+    rtemplate = Environment(loader=BaseLoader()).from_string(conf.get('question_template'))
+    data = rtemplate.render(**data.get('params'))
 
     return data
 

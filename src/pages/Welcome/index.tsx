@@ -54,7 +54,7 @@ const Welcome = () => {
     const navigate = useNavigate()
 
     const [config, setConfig]  =  useState<Config>({visible: false, editor_configs: {}})
-    const [inputs, setInputs]   =  useState({question: '', temperature: 0.1, editor: '', question_values: [] as QVariable[], waiting_id: null })
+    const [inputs, setInputs]   =  useState({question: '', temperature: 0.1, editor: '', question_values: [] as QVariable[], waiting_id: null, last_report_id: null })
     const [items, setItems] = useState<any[]>([])
 
     const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -146,13 +146,14 @@ const Welcome = () => {
         
             fetchQuestionStatus().then((data)  => {
                 setConfig({...config,  waiting_success: false})
+                setInputs({...inputs, waiting_id: null})
+                
             }).catch( (error) => {
                 console.log(error)
             })
       }
-      console.log(inputs.waiting_id)
 
-    }, 1000)
+    }, 2000)
 
     const fetchSaveTemplate  =  async ()  =>  {
 
@@ -193,6 +194,7 @@ const Welcome = () => {
             //setItems([...items,data as any])
             setConfig({...config, company_visible: false, waiting_visible: true, waiting_success: true}); 
             setInputs({...inputs, waiting_id: data.id});
+            setInputs({...inputs, last_report_id: data.id})
          }).catch(  (error:any)  =>  {
             console.log(error);
          }).finally(()=>  {
@@ -494,7 +496,8 @@ const Welcome = () => {
                  }
                 
             </Modal>
-            <Modal open={config.waiting_visible} confirmLoading={config.waiting_success}>
+            <Modal open={config.waiting_visible} confirmLoading={config.waiting_success} okText="Go to report" onOk={ ()=> { navigate('/new_dashboard',{state:{id: inputs.last_report_id}}) }}>
+              <Typography.Title level={5}>Waiting</Typography.Title>
             </Modal>
         </>
     )

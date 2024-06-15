@@ -62,7 +62,7 @@ class E2ec:
             q = """select  params from queries where id = %(query_id)s"""
             p = {"query_id": query_id}
             cur.execute(q,p)
-            res = cur.fetchone()[0]
+            res = cur.fetchone()
             resj = json.loads(res)
             update(resj, params)
             q = """update queries set params = %(params)s where id = %(query_id)s"""

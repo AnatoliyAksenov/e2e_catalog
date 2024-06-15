@@ -94,3 +94,17 @@ async def query(request: Request, model: Annotated[object, Depends(model_api)], 
     background_tasks.add_task( processes.company_query,  connection, model, file_storage, query_id, data)
 
     return {"id": query_id}
+
+@router.get('/api/question_status/{id}')
+async def question_status(request: Request, id: int, connection: Annotated[object, Depends(connection)]):
+    idx = request.path_params.get('id')
+    res  = await processes.question_status(connection, idx)
+    return res
+
+
+
+@router.get('/api/question_report/{id}')
+async def question_report(request: Request, id: int, connection: Annotated[object, Depends(connection)]):
+    idx = request.path_params.get('id')
+    res  = await processes.question_report(connection, idx)
+    return res
