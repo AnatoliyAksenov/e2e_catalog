@@ -150,6 +150,22 @@ async def new_query(connection, model, caption, theme):
 
 
 def parse_date(dd):
+    """
+    Function that parses a given date string and attempts to convert it to a standard ISO format.
+    
+    This function uses the pendulum library to parse the date and applies a formatting conversion to match the ISO format. 
+    If the parsing fails, the original date string is returned.
+    
+    Parameters
+    ----------
+    dd : str
+        The date string to be parsed.
+    
+    Returns
+    -------
+    str
+        The parsed date in ISO format or the original date string if parsing failed.
+    """
     try:
         return pendulum.parse(dd).strftime('%Y-%m-%dT%H:%M:%S')
     except:
@@ -206,6 +222,27 @@ async def raw_dashboard_data(connection, idx):
 
 
 async def store_file(connection, file_storage, content, file_name):
+    """
+    Asynchronous method that stores a file in the designated storage location and creates an entry for it in the database.
+    
+    This method generates a unique key for the file, uploads the file to the storage bucket, and inserts a record into the database with the file details.
+    
+    Parameters
+    ----------
+    connection : Database Connection Object
+        An established connection to the database where the file entries will be created.
+    file_storage : File Storage Object
+        The storage system for uploaded files.
+    content : Content Object
+        The file content and metadata needed to store the file.
+    file_name : str
+        The name of the file being stored.
+    
+    Returns
+    -------
+    key : str        The generated unique key associated with the stored file.
+    """
+
     # we are using seed and there we have to use new seed to get unique key
     key = "".join(random.Random(time()).choices(string.ascii_letters,k=32))
     file_storage.put_object(FILE_STORAGE_BUCKET, key, content.file, content.size)
@@ -226,8 +263,34 @@ async def query(connection, model, file_storage, data):
 
     print(len(content))
 
+    #TODO Not finished
+    pass
+
 
 async def company_query(connection, model, file_storage, query_id, data):
+    """
+    Asynchronous method that queries a company's information using the provided parameters.
+    
+    This method queries the database for a specific company's information based on the given query ID and data. 
+    It then parses the response and updates the query status accordingly.
+    
+    Parameters
+    ----------
+    connection : Database Connection Object
+        An established connection to the database where the reports are stored.
+    model : Model Object
+        The neural network model used for generating responses.
+    file_storage : File Storage Object
+        The storage system for uploaded files.
+    query_id : int
+        The unique identifier for the query being processed.
+    data : dict
+        The input data containing the necessary information for processing the.
+    
+    Returns
+    -------
+    None
+    """
 
     key = data.get('question_key')
 
@@ -327,18 +390,35 @@ async def company_query(connection, model, file_storage, query_id, data):
         try:
             data = await get_closed_resource_data(request_params=request_params, inn=inn)
             E2ec.update_query_table(connection, query_id, table=data)
-            
+
         except Exception as e:
             print(e)
-
-        
-
 
     E2ec.update_query_params(connection, query_id, params=variables)
     E2ec.update_query_status(connection, query_id, 0)
 
 
 async def report_list(connection, date_from):
+    """
+    Asynchronous method that queries the database for a list of reports based on the given date from which to start reporting.
+    
+    Parameters
+    ----------
+    connection : Database Connection Object
+        An established connection to the database where the reports are stored.
+    date_from : datetime object or str
+        The starting date (inclusive) for the reports to be queried.
+        
+    Returns
+    -------
+    data : list
+        A list of dictionaries containing the report information queried from the database.
+    
+    Raises
+    ------
+    ValueError
+        If the provided `date_from` is not in a valid format or cannot be parsed.
+    """
     data  = E2ec.select_queries(connection, date_from)
 
     return data

@@ -748,12 +748,17 @@ files = [
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.2.78"
+version = "0.2.77"
 description = "Python bindings for the llama.cpp library"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "llama_cpp_python-0.2.78.tar.gz", hash = "sha256:3df7cfde84287faaf29675fba8939060c3ab3f0ce8db875dabf7df5d83bd8751"},
+    {file = "llama_cpp_python-0.2.77-cp310-cp310-linux_x86_64.whl", hash = "sha256:500da94116d202c756b5328478387ee1fd8311cc7b39bd8f6561d304f058a2a5"},
+    {file = "llama_cpp_python-0.2.77-cp310-cp310-win_amd64.whl", hash = "sha256:3f6c7dd93a5f7fc4d937784acc0580dbf8e76e38903d95838034fbc646f9868a"},
+    {file = "llama_cpp_python-0.2.77-cp311-cp311-linux_x86_64.whl", hash = "sha256:ad6cc273bf850b3ebfadfb3e43088a4fb1942997ba7b1e9ab39413e5ce736519"},
+    {file = "llama_cpp_python-0.2.77-cp311-cp311-win_amd64.whl", hash = "sha256:cd0d6734af8eb26122e3f95fbda4119d69120d31d6c4725819a97e75d56cabc8"},
+    {file = "llama_cpp_python-0.2.77-cp312-cp312-linux_x86_64.whl", hash = "sha256:d311bbb9de88f8ebfc7301f80d4db2885a1384f59ef810f3403666039c9493e2"},
+    {file = "llama_cpp_python-0.2.77-cp312-cp312-win_amd64.whl", hash = "sha256:eb0f2b2c6015f458f1c61516944027fdba973199cdd56c0710280dba76ad9f8b"},
 ]
 
 [package.dependencies]
@@ -773,6 +778,11 @@ all = ["llama_cpp_python[dev,server,test]"]
 dev = ["black (>=23.3.0)", "httpx (>=0.24.1)", "mkdocs (>=1.4.3)", "mkdocs-material (>=9.1.18)", "mkdocstrings[python] (>=0.22.0)", "pytest (>=7.4.0)", "twine (>=4.0.2)"]
 server = ["PyYAML (>=5.1)", "fastapi (>=0.100.0)", "pydantic-settings (>=2.0.1)", "sse-starlette (>=1.6.1)", "starlette-context (>=0.3.6,<0.4)", "uvicorn (>=0.22.0)"]
 test = ["httpx (>=0.24.1)", "pytest (>=7.4.0)", "scipy (>=1.10)"]
+
+[package.source]
+type = "legacy"
+url = "https://abetlen.github.io/llama-cpp-python/whl/cu124"
+reference = "llama-cpp-python-gpu"
 
 [[package]]
 name = "lxml"
@@ -2158,4 +2168,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "3d5577d7ac390f73f285f96b17bd14c164e0d36bab97d8b3891912102d9f53d7"
+content-hash = "88cb616ab70ec9d7ec4a4e2148403dedb4f4cf899a6f83bed80839451f9c1828"

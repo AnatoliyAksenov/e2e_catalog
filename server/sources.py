@@ -15,6 +15,37 @@ class E2ec:
 
     @staticmethod
     def insert_urls(conn, /, query_id, url, question, content_type, template_key, summary, summary_model, execution_time):
+        """
+            Static method that inserts a new URL into the database and returns its ID.
+            
+            This method accepts a connection object, query ID, URL, question, content type, template key, summary, summary model, and execution time as parameters. It then executes an SQL statement to insert the data into the URLs table and returns the newly assigned ID.
+            
+            Parameters
+            ----------
+            conn : Connection Object
+                An open database connection.
+            query_id : int
+                The unique identifier for the query associated with the URL.
+            url : str
+                The URL to be inserted into the database.
+            question : str
+                The question related to the URL.
+            content_type str
+                The content type of the URL.
+            template_key : str
+                The template key associated with the URL.
+            summary : str
+                The summary of the URL content.
+            summary_model : str
+                The model used to generate the summary.
+            execution_time : float
+                The time taken to execute the query.
+            
+         Returns
+            -------
+            int
+                The ID of the newly inserted URL.
+        """
         with conn.cursor() as cur:
 
             q = """insert into urls(query_id, url, question, content_type, template_key, summary, summary_model, execution_time) 
