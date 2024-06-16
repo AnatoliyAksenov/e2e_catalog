@@ -11,7 +11,7 @@ from server.sources import E2ec
 from server.sources import FILE_STORAGE_BUCKET
 
 from server.templates import templates
-from server.utils import process_query, get_text_by_link, get_links, headers
+from server.utils import process_query, get_text_by_link, get_links, headers, get_closed_resource_data
 
 from jinja2 import Environment, BaseLoader
 
@@ -273,8 +273,6 @@ async def company_query(connection, model, file_storage, query_id, data):
 
         return
     
-    if use_closed_resources:
-        closed_res = E2ec.get_closed_resources(connection)
 
     # get inn
     request_params = {'headers': headers, "timeout": 5}
@@ -323,6 +321,13 @@ async def company_query(connection, model, file_storage, query_id, data):
                 if res:
                     variables[key]  = res
                     break
+    
+    if use_closed_resources:
+        #closed_res = E2ec.get_closed_resources(connection)
+        data = await get_closed_resource_data(request_params=request_params, inn=inn)
+
+        
+
 
     E2ec.update_query_params(connection, query_id, params=variables)
     E2ec.update_query_status(connection, query_id, 0)
@@ -343,6 +348,15 @@ async def save_template(connection, params):
 
 
 async def update_values(connection, params):
+    """This function takes two required arguments: `connection` which is an established database connection, 
+       and `params` which contains necessary information to perform the update operation. 
+       The function returns the updated data after execution.
+    
+    :param connection: An established database connection object.
+    :param params: A dictionary containing 'question_key' and 'variables' keys with corresponding values needed for the update operation.
+    :return: The updated data after executing the update operation.
+    """
+
     question_key  = params.get('question_key')
     variables  = params.get('variables')
     data  = E2ec.update_values(connection, question_key, variables)
@@ -350,8 +364,15 @@ async def update_values(connection, params):
     return data
 
 
-
 async def questions_config(connection):
+    """Async function that retrieves the configurations for all questions.
+    
+    This function queries the database for the configurations 
+    of all available questions and returns a list of dictionaries containing the configurations.
+
+    :param connection: A database connection object used to query the database.
+    :return: A list of dictionaries containing the configurations for all questions.
+    """
 
     data = E2ec.get_questions_configs(connection)
 
@@ -359,6 +380,14 @@ async def questions_config(connection):
 
 
 async def question_status(connection, query_id):
+    """Async function that retrieves the status of a given question.
+    
+    This function queries the database for the specified question and returns its status.
+
+    :param connection: A database connection object used to query the database.
+    :param query_id: The ID of the question whose status should be retrieved.
+    :return: The status of the question as a string.
+    """
 
     data = E2ec.get_query(connection, query_id)
 
@@ -366,6 +395,15 @@ async def question_status(connection, query_id):
 
 
 async def question_report(connection, query_id):
+    """Async function that generates a report for a given question.
+    
+    This function retrieves the question details and configuration from the database, 
+    renders the template, and returns the rendered report along with the question and config data.
+
+    :param connection: A database connection object used to query the database.
+    :param query_id: The ID of the question for which to generate the report.
+    :return: A tuple containing the rendered report, question data, and config data.
+    """
 
     data = E2ec.get_query(connection, query_id)
 
@@ -378,6 +416,15 @@ async def question_report(connection, query_id):
 
 
 async def question_pdf_report(connection, query_id):
+    """Function that generates a PDF report for a given question.
+    
+    This function retrieves the question details and configuration from the database, renders the template, 
+    and creates a PDF file containing the rendered content.
+
+    :param connection: A database connection object used to query the database.
+    :param query_id: The ID of the question for which to generate the report.
+    :return: A binary file representing the generated PDF report.
+    """
 
     data = E2ec.get_query(connection, query_id)
 
@@ -396,6 +443,15 @@ async def question_pdf_report(connection, query_id):
 
 
 async def register_question(connection, params):
+    """Async function that registers a new question in the database.
+    
+    This function takes a set of parameters describing the question and its settings, and inserts them into the database using the provided connection object. 
+    The returned data contains the ID of the newly registered question.
+
+    :param connection: A database connection object used to insert the question into the database.
+    :param params: A dictionary containing the following keys: 'question_key', 'question', 'theme', 'files', 'temperature', 'use_internet', 'use_closed_resources', and 'additional_questions'.
+    :return: A dictionary containing the ID of the newly registered question.
+    """
     question_key   = params.get('question_key')
     question  = params.get('question')
     theme  = params.get('theme')
@@ -414,12 +470,28 @@ async def register_question(connection, params):
 
 
 async def get_blacklist(connection):
+    """Async function that retrieves the URL blacklist from the database.
+    
+    This function queries the database for the URL blacklist using the provided connection object. 
+    The returned data is in the form of a list of strings, where each string represents a single blacklisted URL.
+
+    :param connection: A database connection object used to query the database.
+    :return: A list of strings containing blacklisted URLs.
+    """
     data  = E2ec.get_url_blacklist(connection)
 
     return data
 
 
 async def get_closed_sources(connection):
+    """Async function that retrieves closed sources from the database.
+    
+    This function queries the database for a list of closed sources using the provided connection object. 
+    The returned data is in the form of a list of dictionaries, where each dictionary represents a single closed source.
+
+    :param connection: A database connection object used to query the database.
+    :return: A list of dictionaries containing information about the closed sources.
+    """
     data  = E2ec.get_closed_sources(connection)
 
     return data

@@ -134,3 +134,8 @@ async def process_query(query):
     return [ {"link": x[0], "type": x[1], "text": unicodedata.normalize('NFKC', x[2] or ''), "data": x[3]} for x in res if x and x[1]]
 
 
+async def get_closed_resource_data(request_params, inn):
+    link = 'https://companies.rbc.ru/api/web/v1/financial-indicators/?inn={inn}'.format(inn=inn)
+    res = requests.get(link, **request_params, verify=False)
+    data = await res.json()
+    return data
