@@ -13,7 +13,9 @@ import MainPage      from './pages/MainPage'
 import NewDashboard  from './pages/NewDashboard'
 import Welcome from './pages/Welcome'
 import ReportList from './pages/ReportList'
-
+import ReportView from './pages/ReportView'
+import Blacklist from './pages/Blacklist'
+import ClosedSources  from './pages/ClosedSources'
 
 
 const router = createBrowserRouter([
@@ -32,6 +34,19 @@ const router = createBrowserRouter([
           path: "/new_dashboard",
           element: <NewDashboard />,
         },
+        {
+          path: "/report_view",
+          element: <ReportView  />
+        },
+        {
+          path: "/blacklist",
+          element: <Blacklist />
+        },
+        {
+          path: "/closedsources",
+          element: <ClosedSources  />
+
+        }
       ]
   }
 ]);

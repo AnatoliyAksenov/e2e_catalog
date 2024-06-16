@@ -4,7 +4,7 @@ import { Drawer, Menu, Col, Layout, Flex, Button, Divider } from 'antd';
 import {Outlet, Link} from "react-router-dom";
 import { useSelector } from 'react-redux'
 
-import { MenuOutlined, HomeOutlined, AppstoreOutlined, AppstoreAddOutlined  } from  '@ant-design/icons';
+import { MenuOutlined, HomeOutlined, AppstoreOutlined, AppstoreAddOutlined, MenuFoldOutlined, CloseCircleOutlined } from  '@ant-design/icons';
 
 //CSS
 import './index.css';
@@ -24,12 +24,12 @@ const Sidebar = () => {
             <Flex gap='large'>
                 <Button type="text" icon={ <MenuOutlined /> } onClick={() => setVisible(true)} />
                 <Content onClick={() => setVisible(true)}>
-                  <h2><strong style={{color: 'white', backgroundColor: '#A0A0A0', padding: '2px'}}>E2E</strong>Catalog</h2>
+                  <h2><strong style={{color: 'white', backgroundColor: '#A0A0A0', padding: '2px'}}>E2E</strong>Каталог</h2>
                 </Content>
             </Flex>
             <Divider />
             <Drawer
-              title="Welcome to E2E Catalog"
+              title="E2E Каталог"
               placement='left'
               closable={true}
               open={visible}
@@ -40,16 +40,24 @@ const Sidebar = () => {
           
                 <Menu mode="vertical">
 
-                    <Menu.Item key="1" onClick={() => setVisible(false)} icon={<HomeOutlined />}>
-                        <Link to="/" style={{paddingLeft: 10}}>Home</Link>
+                    <Menu.Item key="root" onClick={() => setVisible(false)} icon={<HomeOutlined />}>
+                        <Link to="/" style={{paddingLeft: 10}}>Новый запрос</Link>
                     </Menu.Item>
 
-                    <Menu.Item key="2" onClick={() => setVisible(false)} icon={<AppstoreOutlined />}>
-                        <Link to="/dashboards" style={{paddingLeft: 10}}>Collection</Link>
+                    <Menu.Item key="dashboards" onClick={() => setVisible(false)} icon={<AppstoreOutlined />}>
+                        <Link to="/dashboards" style={{paddingLeft: 10}}>Готовые запросы</Link>
                     </Menu.Item>
 
-                    <Menu.Item key="new_dashboard" onClick={() => setVisible(false)} icon={<AppstoreAddOutlined />}>
-                        <Link to="/new_dashboard" style={{paddingLeft: 10}}>New Dashboard</Link>
+                    <Menu.Item key="blacklist" onClick={() => setVisible(false)} icon={<MenuFoldOutlined />}>
+                        <Link to="/blacklist" style={{paddingLeft: 10}}>Черный список url</Link>
+                    </Menu.Item>
+
+                    <Menu.Item key="closedsources" onClick={() => setVisible(false)} icon={<CloseCircleOutlined />}>
+                        <Link to="/closedsources" style={{paddingLeft: 10}}>Закрытые ресурсы</Link>
+                    </Menu.Item>
+
+                    <Menu.Item key="rag" onClick={() => setVisible(false)} icon={<AppstoreAddOutlined />}>
+                        <Link to="/rag" style={{paddingLeft: 10}}>RAG (в разработке)</Link>
                     </Menu.Item>
 
                 </Menu>
@@ -60,7 +68,6 @@ const Sidebar = () => {
                 <Outlet />
               </div>
 
-          
         </Col>
 
       </Content>

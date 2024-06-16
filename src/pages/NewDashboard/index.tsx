@@ -1,19 +1,15 @@
-import { useEffect, useRef, useState, useMemo, createRef, LegacyRef} from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom"
-import { useLoaderData } from "react-router-dom"
-import update  from 'immutability-helper'
+
 import { useSelector } from 'react-redux'
 
-import { useSize } from "ahooks"
-
-import { Drawer, Menu, MenuProps, Row, Col, Layout, Flex, Button, Divider, Typography, Modal, Input, Steps } from 'antd';
+import { MenuProps, Row, Col, Layout, Divider, Typography, Steps } from 'antd';
 
 import RGL, { WidthProvider } from "react-grid-layout";
 import  GridLayout  from 'react-grid-layout';
 import { Table } from 'antd';
 
 import Markdown from 'react-markdown'
-
 
 
 import './index.css';
@@ -33,7 +29,6 @@ export async function loader( {params}:any ) {
     //return params.id;
     return 5
   }
-
 
   interface Layout{
     w:number,
@@ -87,8 +82,6 @@ export async function loader( {params}:any ) {
 
       const {state}  =  useLocation();
       const {id} = state;
-
-      
   
       const user = useSelector((state: any) => state.user.value);
       //if(user.name == "") navigate('/login')

@@ -33,6 +33,7 @@ interface Config{
     editor_visible?: boolean,    
     editor_key?: string,
     use_internet?: boolean,
+    use_closed_sources?: boolean,
     editor_configs: {[key: string]:EditorConfig},
     qlist_visible?: boolean,
     selection?: any,
@@ -40,6 +41,7 @@ interface Config{
     company_visible?: boolean,
     waiting_visible?: boolean,
     waiting_success?: boolean,
+    modal_waiting?: number,
 }
 
 interface QVariable{
@@ -63,15 +65,6 @@ const Welcome = () => {
 
     const [questionTheme, setQuestionTheme] = useState('Финансы')
 
-
-    // useEffect(()  => {
-    //   const template_data = {
-    //     'simple_rules': {
-    //       "template": "Super simple template for jinja2"
-    //     }
-    //   }
-    //   setConfig({...config, editor_configs: template_data})
-    // }, [])
 
     const fetchQuestionsConfig  =  async ()  =>  {
       
@@ -100,8 +93,10 @@ const Welcome = () => {
             method: "POST", 
             body: JSON.stringify({
                 question: inputs.question,
+                question_key: config.editor_key,
                 temperature: inputs.temperature,
                 use_internet: config.use_internet,
+                use_closed_sources: config.use_closed_sources,
                 files: fileList.map((file) => file.response.key)
 
             })
@@ -122,6 +117,7 @@ const Welcome = () => {
               question_key: config.editor_key,
               temperature: inputs.temperature,
               use_internet: config.use_internet,
+              use_closed_sources: config.use_closed_sources,
               files: fileList.map((file) => file.response.key)
 
           })
@@ -133,9 +129,9 @@ const Welcome = () => {
       return json;
     }
 
-    const fetchQuestionStatus  =  async ()  =>  {
+    const fetchQuestionStatus  =  async (id:any)  =>  {
       
-      const response  = await fetch(`http://localhost:8000/api/question_status/${inputs.waiting_id}`  );
+      const response  = await fetch(`http://localhost:8000/api/question_status/${id}`  );
       const json  = await response.json();
 
       return json;
@@ -144,9 +140,15 @@ const Welcome = () => {
     useInterval(() => {
       if(!!inputs.waiting_id){
         
-            fetchQuestionStatus().then((data)  => {
-                setConfig({...config,  waiting_success: false})
+            fetchQuestionStatus(inputs.waiting_id).then((data)  => {
+
+              if(data.status == 0){
+                const nid = (config.modal_waiting || 0)+1
+
+                setConfig({...config,  waiting_success: false, modal_waiting: nid})
                 setInputs({...inputs, waiting_id: null})
+               
+              }
                 
             }).catch( (error) => {
                 console.log(error)
@@ -179,7 +181,7 @@ const Welcome = () => {
 
     const onOk = () => {
         fetchNewQuestion().then((data)  => {
-            setItems([...items,data as any])
+            //setItems([...items,data as any])
             setConfig({...config, visible: false}); 
         }).catch( (error:any) => {
             console.log(error);
@@ -192,9 +194,9 @@ const Welcome = () => {
     const onCompanyOk = ()  =>  {
       fetchCompanyQuestion().then((data)   =>  {
             //setItems([...items,data as any])
-            setConfig({...config, company_visible: false, waiting_visible: true, waiting_success: true}); 
-            setInputs({...inputs, waiting_id: data.id});
-            setInputs({...inputs, last_report_id: data.id})
+            setConfig({...config, company_visible: false, waiting_visible: true, waiting_success: true, modal_waiting: 0}); 
+            setInputs({...inputs, waiting_id: data.id, last_report_id: data.id});
+
          }).catch(  (error:any)  =>  {
             console.log(error);
          }).finally(()=>  {
@@ -281,7 +283,7 @@ const Welcome = () => {
     return (
         <>
             <Content>
-                <h1>Welcome to the <strong style={{color: 'white', backgroundColor: '#A0A0A0', padding: '2px'}}>E2E</strong>Catalog</h1>
+                <h1>Задачи: <strong style={{color: 'white', backgroundColor: '#A0A0A0', padding: '2px'}}>E2E</strong>Каталог</h1>
 
                 <Row justify="center" gutter={[16,16]}>
                     <Col>
@@ -378,54 +380,59 @@ const Welcome = () => {
                     </Col>
                 </Row>
 
-
-                <Button onClick={ ()  =>  { setConfig({...config, visible: true}) }}> new question</Button>
-
             </Content>
-            <Modal title="New question" open={config.visible} onOk={ onOk } okText="Run" destroyOnClose={false} onCancel={ () =>{ setConfig({...config, visible: false}) }} cancelText="CLose" width={650}>
+            <Modal title="New question" open={config.visible} onOk={ onOk } okText="Вперед" destroyOnClose={false} onCancel={ () =>{ setConfig({...config, visible: false}) }} cancelText="Закрыть" width={650}>
                 <Form layout='horizontal'>
                     <Form.Item label="Question" labelCol={{span: 6}}   >
-                    <Input placeholder="Enter your question" onChange={ (e:any) => setInputs({...inputs, question: e.target.value})}/>      
+                    <Input placeholder="Введите ваш запрос" onChange={ (e:any) => setInputs({...inputs, question: e.target.value})}/>      
                     </Form.Item>
                     
-                    <Form.Item label="Use Internet search"  labelCol={{span: 6}} >
-                    <Checkbox value={false} onChange={( e:any)  => setConfig({...config, use_internet: e.target.value}) }> Use Internet search</Checkbox>
+                    <Form.Item label="Использовать интернет ресурсы"  labelCol={{span: 6}} >
+                    <Checkbox value={config.use_internet} onChange={( e:any)  => setConfig({...config, use_internet: e.target.checked}) }>Использоваь интернет ресурсы</Checkbox>
+                    </Form.Item>
+
+                    <Form.Item label="Использовать закрытые источники"  labelCol={{span: 6}} >
+                    <Checkbox checked={config.use_closed_sources} onChange={( e:any)  => setConfig({...config, use_closed_sources: e.target.checked}) }> Использовать закрытые источники</Checkbox>
                     </Form.Item>
     
-                    <Form.Item label="Themperature"  labelCol={{span: 6}} >
+                    <Form.Item label="Темпиратута"  labelCol={{span: 6}} >
                       <Slider min={0.1} max={1} step={0.1} onChange={(e:any)  => setInputs({...inputs, temperature: e}) } defaultValue={.5} />
                     </Form.Item>
 
-                    <Form.Item label="Text files" getValueFromEvent={(e:any)   => setFileList(e.fileList)  }>
-                        <Upload accept='application/docx' action='http://localhost:8000/api/uploadfile/' ref={upload} onChange={onUploadChange}> PDF or DOCX files</Upload>
+                    <Form.Item label="Текстовые ресурсы" getValueFromEvent={(e:any)   => setFileList(e.fileList)  }>
+                        <Upload accept='application/docx' action='http://localhost:8000/api/uploadfile/' ref={upload} onChange={onUploadChange}> PDF, DOCX или TXT файлы</Upload>
                     </Form.Item>
 
                 </Form>
             </Modal>
 
-            <Modal title="Company question" open={config.company_visible} onOk={ onCompanyOk } okText="Run" destroyOnClose={false} onCancel={ () =>{ setConfig({...config, company_visible: false}) }} cancelText="CLose" width={650}>
+            <Modal title="Запрос по компании" open={config.company_visible} onOk={ onCompanyOk } okText="Запуск" destroyOnClose={false} onCancel={ () =>{ setConfig({...config, company_visible: false}) }} cancelText="Закрыть" width={650}>
                 <Form layout='horizontal'>
-                    <Form.Item label="Question" labelCol={{span: 6}}   >
-                    <Input placeholder="Enter your question" onChange={ (e:any) => setInputs({...inputs, question: e.target.value})}/>      
+                    <Form.Item label="Запрос" labelCol={{span: 6}}   >
+                    <Input placeholder="Название компании" onChange={ (e:any) => setInputs({...inputs, question: e.target.value})}/>      
                     </Form.Item>
                     
-                    <Form.Item label="Use Internet search"  labelCol={{span: 6}} >
-                    <Checkbox value={false} onChange={( e:any)  => setConfig({...config, use_internet: e.target.value}) }> Use Internet search</Checkbox>
+                    <Form.Item label="Использовать интернет ресурсы"  labelCol={{span: 6}} >
+                    <Checkbox checked={config.use_internet} onChange={( e:any)  => setConfig({...config, use_internet: e.target.checked}) }> Использовать интернет ресурсы</Checkbox>
+                    </Form.Item>
+
+                    <Form.Item label="Использвоать закрытые источники"  labelCol={{span: 6}} >
+                    <Checkbox checked={config.use_closed_sources} onChange={( e:any)  => setConfig({...config, use_closed_sources: e.target.checked}) }>Использовать закрытые источники</Checkbox>
                     </Form.Item>
     
-                    <Form.Item label="Themperature"  labelCol={{span: 6}} >
+                    <Form.Item label="Темпиратура"  labelCol={{span: 6}} >
                       <Slider min={0.1} max={1} step={0.1} onChange={(e:any)  => setInputs({...inputs, temperature: e}) } defaultValue={.5} />
                     </Form.Item>
 
-                    <Form.Item label="Text files" getValueFromEvent={(e:any)   => setFileList(e.fileList)  }>
-                        <Upload accept='application/docx' action='http://localhost:8000/api/uploadfile/' ref={upload} onChange={onUploadChange}> PDF, DOCX, TXT files</Upload>
+                    <Form.Item label="Текстовые файлы" getValueFromEvent={(e:any)   => setFileList(e.fileList)  }>
+                        <Upload accept='application/docx' action='http://localhost:8000/api/uploadfile/' ref={upload} onChange={onUploadChange}> PDF, DOCX, TXT файлы</Upload>
                     </Form.Item>
 
                 </Form>
             </Modal>
 
-            <Modal open={config.editor_visible} title="Template editor" width={1000} onCancel={ () => {setConfig({...config, editor_visible: false})  }} okText="Save" onOk={ onSaveEditor }>
-                <Typography.Title level={5}>Template editor (Jinja2)</Typography.Title>
+            <Modal open={config.editor_visible} title="Редактор шаблона" width={1000} onCancel={ () => {setConfig({...config, editor_visible: false})  }} okText="Сохранить" onOk={ onSaveEditor }>
+                <Typography.Title level={5}>Редактор шаблонов (Jinja2)</Typography.Title>
                 <Row>
                 <Col span={18}  >
                 <AceEditor
@@ -463,22 +470,22 @@ const Welcome = () => {
 
                 </Col>
                 </Row>
-                <Typography.Link href='https://jinja.palletsprojects.com/en/3.1.x/api/#basics' target='_blank'>Jinja 2 documentation</Typography.Link>
+                <Typography.Link href='https://jinja.palletsprojects.com/en/3.1.x/api/#basics' target='_blank'>Jinja 2 документаця</Typography.Link>
             </Modal>
-            <Modal open={config.qlist_visible} title="Question list" width={800} onCancel={ ()  =>  setConfig({...config, qlist_visible: false})   } okText="Save" onOk={ onSaveQList  }>
+            <Modal open={config.qlist_visible} title="Параметры отчета" width={800} onCancel={ ()  =>  setConfig({...config, qlist_visible: false})   } okText="Save" onOk={ onSaveQList  }>
                 { inputs.question_values.length == 0?
                   <>
-                  <Typography.Title level={5}>Question list is empty</Typography.Title>
-                  <Button onClick={  ()=>  setInputs({...inputs, question_values: [{key: 'new_key', variable:  'new_value'}]})  }>New question</Button>
+                  <Typography.Title level={5}>Пустой список</Typography.Title>
+                  <Button onClick={  ()=>  setInputs({...inputs, question_values: [{key: 'ключ', variable:  'значение'}]})  }>Новый параметр</Button>
                   </>
                    :
                   inputs.question_values.map((e:any, index:number) => {
                   return (
                     <>
-                   <Input key={'inp_key_'+index} size='small' style={{width: 100}} value={inputs.question_values[index].key} onChange={  (e:any)  =>  { const qv = JSON.parse(JSON.stringify(inputs.question_values)); 
+                   <Input key={'inp_key_'+index} size='small' style={{width: 200}} value={inputs.question_values[index].key} onChange={  (e:any)  =>  { const qv = JSON.parse(JSON.stringify(inputs.question_values)); 
                     qv[index].key = e.target.value; setInputs({...inputs, question_values: qv})} 
                     }/> 
-                   <Input key={'inp_var_'+index} size="small"  style={{width: 200}} value={inputs.question_values[index].variable} onChange={  (e:any)  =>  {const qv = JSON.parse(JSON.stringify(inputs.question_values)); 
+                   <Input key={'inp_var_'+index} size="small"  style={{width: 300}} value={inputs.question_values[index].variable} onChange={  (e:any)  =>  {const qv = JSON.parse(JSON.stringify(inputs.question_values)); 
                     qv[index].variable = e.target.value; setInputs({...inputs, question_values: qv})}  
                     }/>
                     <Button key={'inp_btn_'+index} size="small" onClick={  ()=>  setInputs({...inputs, question_values: inputs.question_values.splice(index, 1)})   }><MinusOutlined /></Button>
@@ -488,7 +495,7 @@ const Welcome = () => {
                   }).concat(
                     <>
                       <Divider />
-                      <Button size="small" onClick={  ()=>  setInputs({...inputs, question_values: inputs.question_values.concat({key: 'new_key', variable:  'new_value'})})  }><PlusOutlined/></Button>
+                      <Button size="small" onClick={  ()=>  setInputs({...inputs, question_values: inputs.question_values.concat({key: 'ключ', variable:  'значение'})})  }><PlusOutlined/></Button>
                     </>
                   )
             
@@ -496,8 +503,10 @@ const Welcome = () => {
                  }
                 
             </Modal>
-            <Modal open={config.waiting_visible} confirmLoading={config.waiting_success} okText="Go to report" onOk={ ()=> { navigate('/new_dashboard',{state:{id: inputs.last_report_id}}) }}>
-              <Typography.Title level={5}>Waiting</Typography.Title>
+            <Modal key={config.modal_waiting} open={config.waiting_visible} confirmLoading={config.waiting_success} okText="Перейти к отчету" onOk={ ()=> { navigate('/report_view',{state:{id: inputs.last_report_id}}) }}>
+              <Typography.Title level={4}>Состояние работы</Typography.Title>
+              { config.waiting_success? <Typography.Title level={5}>Ожидание выполнения</Typography.Title>:
+                                       <Typography.Link href={'http://localhost:8000/api/question_pdf_report/'+inputs.last_report_id}>Скачать pdf</Typography.Link>}
             </Modal>
         </>
     )

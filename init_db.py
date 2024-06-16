@@ -65,13 +65,23 @@ with _conn.cursor() as curr:
                     )
                  """)
     
-ins = """insert into public.questions_config (question_key, label, description) values('simple_question', 'Простые запросы', 'Выполняется подбор вопросов и поиск ответов в интернете');
-insert into public.questions_config (question_key, label, description) values('additional_companies', 'Запрос по компании', 'Выполняется поиск ответов по компании в выбранных источниках');
-insert into public.questions_config (question_key, label, description) values('additional_persons', 'Запрос по персонам', 'Выполняется ппоиск ответов по персоне в выбранных источниках');
-insert into public.questions_config (question_key, label, description) values('aaditional_products', 'Запрос по продуктам', 'Выполняется поиск ответов по продукту в выбранных источниках');
-insert into public.questions_config (question_key, label, description) values('files_companies', 'Запрос по компаннии 2', 'Выполняется поиск ответов по внутренней базе RAG');
-"""
-
-for x in ins.split(';'):
-    if x.strip():
-        curr.execute(x)
+    curr.execute("""create table public.url_blacklist(id SERIAL PRIMARY KEY, url TEXT)""")
+    curr.execute("""create table public.closed_resources(id SERIAL PRIMARY KEY, url TEXT, headers TEXT, credentials TEXT, variable TEXT)""")
+    
+    ins = """insert into public.questions_config (question_key, label, description) values('simple_question', 'Простые запросы', 'Выполняется подбор вопросов и поиск ответов в интернете');
+    insert into public.questions_config (question_key, label, description) values('additional_companies', 'Запрос по компании', 'Выполняется поиск ответов по компании в выбранных источниках');
+    insert into public.questions_config (question_key, label, description) values('additional_persons', 'Запрос по персонам', 'Выполняется ппоиск ответов по персоне в выбранных источниках');
+    insert into public.questions_config (question_key, label, description) values('aaditional_products', 'Запрос по продуктам', 'Выполняется поиск ответов по продукту в выбранных источниках');
+    insert into public.questions_config (question_key, label, description) values('files_companies', 'Запрос по компаннии 2', 'Выполняется поиск ответов по внутренней базе RAG');
+    insert into public.url_blacklist(url) values('google.com');
+    insert into public.url_blacklist(url) values('google.ru');
+    insert into public.url_blacklist(url) values('yandex.ru');
+    insert into public.url_blacklist(url) values('microsoft.com');
+    insert into public.url_blacklist(url) values('microsoft.ru');
+    insert into public.closed_resources(url, headers, credentials, variable) values('https://companies.rbc.ru/api/web/v1/financial-indicators/?inn=', '{"Authorization": "Bearer..."}', '{"username": "...", "password": "..."}', '{{inn}}');
+    insert into public.closed_resources(url, headers, credentials, variable) values('https://focus-api.kontur.ru/api3/buh?inn=', '{"Authorization": "Bearer..."}', '{"key": "3208d29d15c507395db770d0e65f3711e40374df"}', '{{inn}}');
+    """
+    
+    for x in ins.split(';'):
+        if x.strip():
+            curr.execute(x)

@@ -36,7 +36,7 @@ const ReportList = () => {
             <Button type="link" onClick={ () => {  navigate('/new_dashboard',{state:{id: record.id}}) }}><LinkOutlined /></Button> 
         )}
 
-    const questions_render  =  (obj:any, record:any)  =>  {
+    const questions_render = (obj:any, record:any)  =>  {
         return (
            <Tooltip placement="topLeft"  title={ JSON.parse( (record.questions || [])).reduce( (r:string, e:any) => r + '\n' + e, "") } ><LinkOutlined /> </Tooltip>
         )
@@ -44,28 +44,29 @@ const ReportList = () => {
     }
 
     const alt_questions_render = (obj:any, record:any)   =>   {
-        const questions   =  JSON.parse(  (record.questions  ||  []));
+        const questions   =  JSON.parse(  (record.questions  ||  '[]'));
 
-        const q = questions.map(  (e:string)  =>  { return <Tag><span style={{width: 20, whiteSpace: 'collapse'}}>{e}</span></Tag>} )
+        const q = record.theme == 'simple_question' ? null: questions.map(  (e:string)  =>  { return <Tag><span style={{width: 20, whiteSpace: 'collapse'}}>{e}</span></Tag>} );
         
-        return (q)
+        return ( q )
 
     }
 
+
+
     const columns = [
-        {key: "query", dataIndex: "query", title: "Query"}, 
-        {key: 'questions', dataIndex: "questions", title: "Questions", render: alt_questions_render}, 
-        {key: "params", dataIndex: "params", title: "Params"}, 
+        {key: "query", dataIndex: "query", title: "Запрос"}, 
+        {key: "theme", dataIndex: "theme", title: "Тип запроса"},
+        {key: 'questions', dataIndex: "questions", title: "Вопросы", render: alt_questions_render},         
+        {key: "params", dataIndex: "params", title: "Параметры"}, 
         {key: "link", dataIndex: "id", title: "Link", render:link_render }]   
 
     return (
         <>
             <Content>
+                <Typography.Title>Выполненыеы запросы</Typography.Title>
 
-
-                <Table columns={columns} dataSource={reports} />
-
-                
+                <Table size='small' columns={columns} dataSource={reports} />
            </Content>
             
         </>

@@ -15,7 +15,7 @@ openchat36 = {
 
 
 main = {
-    "speed_test": """%(system)sYou are a speed test bot.%(end)s %(user)s What is your name?%(end)s %(assistant)s""",
+    "speed_test": """%(system)sYou are a speed test bot.%(end)s %(user)s What is your name? Give me only your name.%(end)s %(assistant)s""",
     "google_search_engine": """%(system)s You are a google search engine.%(end)s
         %(user)s Suggest internet search queries to ask to the "{q}" in order to "{theme}"
         %(end)s 
@@ -77,9 +77,10 @@ main = {
         %(assistant)s
         """,
     "simple_question": """%(system)s You are a smart competitior. %(end)s
-    %(user)sFind out and return an asnwer to the question "{q}" by text below.%(end)s
+    %(user)s Get me an asnwer to the question {q} in the text below.%(end)s
     %(user)s The given text:
     {text}%(end)s
+    %(user)s верни ответ на русском языке, только ответ, без рассуждений. Если ответа нет, верни пустоту.  %(end)s
     %(assistant)s
     """
 }

@@ -62,11 +62,11 @@ class E2ec:
             q = """select  params from queries where id = %(query_id)s"""
             p = {"query_id": query_id}
             cur.execute(q,p)
-            res = cur.fetchone()
+            res = cur.fetchone()[0]
             resj = json.loads(res)
-            update(resj, params)
+            resj.update(params)
             q = """update queries set params = %(params)s where id = %(query_id)s"""
-            p = {"query_id": query_id,  'params': json.dumps(params, ensure_ascii=False, default=str)}
+            p = {"query_id": query_id,  'params': json.dumps(resj, ensure_ascii=False, default=str)}
             cur.execute(q,p)
 
             return True
@@ -201,6 +201,25 @@ class E2ec:
             res  = cur.fetchone()
             cols  = [x.name for x in cur.description]
             return dict(zip(cols,res))
+        
+    @staticmethod
+    def get_url_blacklist(conn):
+        with conn.cursor() as cur:
+            q = """select url
+                        from url_blacklist
+                     """
+            cur.execute(q)
+            res  = cur.fetchall()
+            return [x[0] for x in res]
+
+    @staticmethod
+    def get_closed_sources(conn):
+        with conn.cursor() as cur:
+            q = """select * from closed_sources"""
+            cur.execute(q)
+            res  = cur.fetchall()
+            cols  = [x.name for x in cur.description]
+            return [dict(zip(cols,x)) for x in res]
 
 
 config = {k:v for k,v in os.environ.items() if k.startswith('E2EC_')}

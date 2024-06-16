@@ -1,3 +1,4 @@
+import re
 import json
 import time
 
@@ -10,7 +11,7 @@ from server.sources import E2ec
 from server.sources import FILE_STORAGE_BUCKET
 
 from server.templates import templates
-from server.utils import process_query
+from server.utils import process_query, get_text_by_link, get_links, headers
 
 from jinja2 import Environment, BaseLoader
 
@@ -23,7 +24,9 @@ from time import time
 
 from tika import parser
 
-import pdkkit
+from weasyprint import HTML
+
+#BLACKLIST = ['google.com', 'microsoft.com', ]
 
 
 async def what_we_do(connection, model, question, theme):
@@ -228,6 +231,8 @@ async def company_query(connection, model, file_storage, query_id, data):
 
     key = data.get('question_key')
 
+    BLACKLIST = E2ec.get_url_blacklist(connection)
+
     
     contents = [file_storage.get_object(FILE_STORAGE_BUCKET, x) for x in data.get('files',[])]
     files = [E2ec.select_file(connection, x) for x in data.get('files',[])]
@@ -245,12 +250,14 @@ async def company_query(connection, model, file_storage, query_id, data):
     conf = E2ec.get_question_config(connection, question_key=key)
     query = E2ec.get_query(connection, query_id)
     closed_res = None
+    variables = {}
 
     if not use_internet and content:
         # search only in content
-        variables = {}
+        
         for q in conf.get('question_values'):
-            question = q.get('variable')
+            only_question = q.get('variable')
+            question = f" '{only_question}' по компании '{query.get('query')}'"
             key = q.get('key')
 
             prompt = templates.get('simple_question').get('prompt')
@@ -270,8 +277,55 @@ async def company_query(connection, model, file_storage, query_id, data):
         closed_res = E2ec.get_closed_resources(connection)
 
     # get inn
+    request_params = {'headers': headers, "timeout": 5}
+    inn_query = f" ИНН компании {query.get('query')} "
+    links = get_links('ddg', query_params={"q":inn_query}, request_params=request_params)
+    links = [x for x in links if x.startswith('http')]
+    links = [x for x in links if not any([xx in x for xx in BLACKLIST])]
 
+    question_prompt = templates.get('simple_question').get('prompt')
+    temp = templates.get('simple_question').get('temperature',  0.5)
 
+    inn = None
+    for link in links:
+        text = await get_text_by_link(link, request_params=request_params)
+        text =re.sub('\s{2,}', ' ', text)
+        inn_prompt = question_prompt.format(text=text, q=inn_query)
+        res = model.call(inn_prompt,  temp=temperature)
+        res = res.strip()
+
+        if res and re.findall('[0-9]{10}',res):
+            findarr = re.findall('[0-9]{10}', res)
+            if findarr:
+                variables['inn']  = findarr[0]
+                inn = findarr[0]
+                break
+    
+
+    for q in conf.get('question_values'):
+        only_question = q.get('variable')
+        question = f" '{only_question}' компания '{query.get('query')}' ИНН {inn}"
+        key = q.get('key')
+
+        links = get_links('ddg', query_params={"q":question}, request_params=request_params)
+        links = [x for x in links if x.startswith('http')]
+        links = [x for x in links if not any([xx in x for xx in BLACKLIST])]
+        for link in links:
+            text = await get_text_by_link(link, request_params=request_params)
+            text =re.sub('\s{2,}', ' ', text)
+
+            if text:
+                qprompt = question_prompt.format(text=text, q=only_question)
+                res = model.call(qprompt,  temp=temperature)
+                res = res.strip()
+                
+                #TODO looging requests and model answers
+                if res:
+                    variables[key]  = res
+                    break
+
+    E2ec.update_query_params(connection, query_id, params=variables)
+    E2ec.update_query_status(connection, query_id, 0)
 
 
 async def report_list(connection, date_from):
@@ -317,10 +371,28 @@ async def question_report(connection, query_id):
 
     conf = E2ec.get_question_config(connection, question_key=data.get('theme'))
 
-    rtemplate = Environment(loader=BaseLoader()).from_string(conf.get('question_template'))
-    data = rtemplate.render(**data.get('params'))
+    rtemplate = Environment(loader=BaseLoader()).from_string(conf.get('template'))
+    report = rtemplate.render(**json.loads(data.get('params')))
 
-    return data
+    return (report, data, conf)
+
+
+async def question_pdf_report(connection, query_id):
+
+    data = E2ec.get_query(connection, query_id)
+
+    conf = E2ec.get_question_config(connection, question_key=data.get('theme'))
+
+    rtemplate = Environment(loader=BaseLoader()).from_string(conf.get('template'))
+    data = rtemplate.render(**json.loads(data.get('params')))
+
+    html = f"""<html><head></head><body>
+    <pre>{data}</pre>
+    </body></html>"""
+
+    file = HTML(string=html).write_pdf()
+
+    return file
 
 
 async def register_question(connection, params):
@@ -337,4 +409,17 @@ async def register_question(connection, params):
     }
 
     data  = E2ec.insert_queries(connection, caption=question, theme=question_key, params=params)
+    return data
+
+
+
+async def get_blacklist(connection):
+    data  = E2ec.get_url_blacklist(connection)
+
+    return data
+
+
+async def get_closed_sources(connection):
+    data  = E2ec.get_closed_sources(connection)
+
     return data

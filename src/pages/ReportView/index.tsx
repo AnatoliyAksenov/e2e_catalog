@@ -1,28 +1,22 @@
-import { useEffect, useRef, useState, useMemo, createRef, LegacyRef} from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom"
-import { useLoaderData } from "react-router-dom"
-import update  from 'immutability-helper'
+
 import { useSelector } from 'react-redux'
 
-import { useSize } from "ahooks"
-
-import { Drawer, Menu, MenuProps, Row, Col, Layout, Flex, Button, Divider, Typography, Modal, Input, Steps,  } from 'antd';
-
-
-import { Table } from 'antd';
+import { Row, Col, Layout, Typography } from 'antd';
 
 import Markdown from 'react-markdown'
 
 
 const {Content} = Layout;
 
-
-
   interface Config{
     visible: boolean,
     label: string,
     editDashboard: boolean,
     report: any,
+    query_config: any,
+    result_config: any
   }
 
   interface Inputs{
@@ -39,7 +33,6 @@ const {Content} = Layout;
       const {state}  =  useLocation();
       const {id} = state;
 
-      
   
       const user = useSelector((state: any) => state.user.value);
       //if(user.name == "") navigate('/login')
@@ -56,10 +49,9 @@ const {Content} = Layout;
       }
 
 
-
       useEffect(() => {
         fetchQuestioReport(id).then( (data)  => {
-          setConfig({...config, report:data});
+          setConfig({...config, report:data[0], query_config: data[1], result_config: data[2]});
           
         }).catch( (err)  =>  {
           console.log(err)
@@ -68,27 +60,21 @@ const {Content} = Layout;
 
       }, [])
 
-      
 
       return (
         <>
           <Content style={{marginLeft: 20}}>
-          <Content>
-            <Typography.Title level={4}>{config.label}</Typography.Title>
+              <Content>
+                <Typography.Title level={4}>Отчет</Typography.Title>
+              </Content>
+    
+              <Row style={{width: '100%'}}>
+                <Col span={24} style={{width: '100%'}}>
+                  <pre>{config. report}</pre>
+                </Col>
+              </Row>
+
           </Content>
-          <Divider />
-
-          <Row style={{width: '100%'}}>
-            <Col span={24} style={{width: '100%'}}>
-
-            </Col>
-          </Row>
-
-    </Content>
-
-
-
-      
         </>
       )
 

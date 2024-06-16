@@ -1,12 +1,17 @@
 from fastapi import APIRouter, Request, UploadFile, BackgroundTasks
+from fastapi.responses import FileResponse, StreamingResponse
 from typing import Annotated
 from fastapi import Depends
+from io import BytesIO
 
 from server.model import model_api
 from server.sources import connection
 from server.sources import file_storage
 
 import server.processors as processes
+
+
+
 router = APIRouter()
 
 _duration = 100
@@ -99,7 +104,7 @@ async def query(request: Request, model: Annotated[object, Depends(model_api)], 
 async def question_status(request: Request, id: int, connection: Annotated[object, Depends(connection)]):
     idx = request.path_params.get('id')
     res  = await processes.question_status(connection, idx)
-    return res
+    return {"status": res}
 
 
 
@@ -107,4 +112,25 @@ async def question_status(request: Request, id: int, connection: Annotated[objec
 async def question_report(request: Request, id: int, connection: Annotated[object, Depends(connection)]):
     idx = request.path_params.get('id')
     res  = await processes.question_report(connection, idx)
+    return res
+
+
+@router.get('/api/question_pdf_report/{id}')
+async def question_report(request: Request, id: int, connection: Annotated[object, Depends(connection)]):
+    idx = request.path_params.get('id')
+    res  = await processes.question_pdf_report(connection, idx)
+    return StreamingResponse(content=BytesIO(res), media_type="application/pdf", headers={'Content-Disposition': 'attachment; filename="report_%s.pdf"'%idx })
+
+
+
+@router.get('/api/blacklist')
+async def blacklist(request: Request, connection: Annotated[object, Depends(connection)]):
+    res  = await processes.get_blacklist(connection)
+    return res
+
+
+
+@router.get('/api/closed_sources')
+async def blacklist(request: Request, connection: Annotated[object, Depends(connection)]):
+    res  = await processes.get_closed_sources(connection)
     return res

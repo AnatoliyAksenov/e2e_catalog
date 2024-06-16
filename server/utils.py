@@ -45,20 +45,29 @@ sources = {
     
 }
 
+
 def get_links(source, query_params, request_params):
-    url = source.get('url').format(**query_params)
+    if isinstance(source, dict):
+        src = sources
+    elif isinstance(source, str):
+        src = sources.get(source)
+    else:
+        raise ValueError("source must be dict or str")
+    
+    url = src.get('url').format(**query_params)
     res = requests.get(url, **request_params, verify=False)
     if res.ok:
         parsed =  html5lib.parse(res.text, treebuilder="lxml")
-        blinks = parsed.findall(source.get('links'), namespaces=parsed.getroot().nsmap)
+        blinks = parsed.findall(src.get('links'), namespaces=parsed.getroot().nsmap)
         links = [x.attrib.get('href') for x in blinks]
     
-        if source.get('extract_link'):
+        if src.get('extract_link'):
             res = [extract_link(x) for x in links]
             return res
 
         return links
     return []
+
 
 async def get_text(link, request_params):
     try:
@@ -84,6 +93,29 @@ async def get_text(link, request_params):
         return (link, None, None)
     except Exception as e:
         return (link, None, None)
+
+
+async def get_text_by_link(link, request_params):
+    try:
+        res = requests.get(link, **request_params, verify=False)
+
+        if res.ok:
+            content_type = res.headers.get('content-type')
+            
+            try:
+                content = res.content
+                raw = parser.from_buffer(content)
+                return  raw['content']
+            except Exception as e:
+                print(e)
+    
+            return None
+    except requests.exceptions.Timeout as e:
+        print(e)
+        return None
+    except Exception as e:
+        print(e)
+        return None
 
 
 async def process_query(query):
