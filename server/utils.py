@@ -137,5 +137,5 @@ async def process_query(query):
 async def get_closed_resource_data(request_params, inn):
     link = 'https://companies.rbc.ru/api/web/v1/financial-indicators/?inn={inn}'.format(inn=inn)
     res = requests.get(link, **request_params, verify=False)
-    data = await res.json()
+    data = res.json()
     return data

@@ -244,7 +244,7 @@ async def company_query(connection, model, file_storage, query_id, data):
     f = data.get('files')
     temperature = data.get('temperature', 0.1)
     use_internet = data.get('use_internet', False)
-    use_closed_resources = data.get('use_closed_resources',False)
+    use_closed_sources = data.get('use_closed_sources', False)
     additional_questions = data.get('additional_questions', [])
 
     conf = E2ec.get_question_config(connection, question_key=key)
@@ -322,9 +322,14 @@ async def company_query(connection, model, file_storage, query_id, data):
                     variables[key]  = res
                     break
     
-    if use_closed_resources:
+    if use_closed_sources:
         #closed_res = E2ec.get_closed_resources(connection)
-        data = await get_closed_resource_data(request_params=request_params, inn=inn)
+        try:
+            data = await get_closed_resource_data(request_params=request_params, inn=inn)
+            E2ec.update_query_table(connection, query_id, table=data)
+            
+        except Exception as e:
+            print(e)
 
         
 

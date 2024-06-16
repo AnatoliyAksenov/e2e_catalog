@@ -26,6 +26,8 @@ const {Meta} = Card;
 interface EditorConfig{
   template: string,
   question_values: QVariable[],
+  label: string,
+  description: string,
 }
 
 interface Config{
@@ -298,8 +300,8 @@ const Welcome = () => {
                       
                         <Meta
                           avatar={<Avatar src={browse} style={{width: 90, height: 90}}/>}
-                          title="Search by simple rules"
-                          description="Description of the question"
+                          title={ config.editor_configs['simple_question']?.label }
+                          description={config.editor_configs['simple_question']?.description }
                         />
                      
                     </Card>
@@ -308,16 +310,16 @@ const Welcome = () => {
                     <Card
                       style={{ width: 400, marginTop: 26 }}
                       actions={[
-                        <RightSquareOutlined key="run" />,
-                        <SettingOutlined key="setting" />,
-                        <EditOutlined key="edit" />,
+                        <RightSquareOutlined key="run" onClick={ () => (setConfig({...config, visible: true, editor_key: 'goods_analysis'}))}/>,
+                        <SettingOutlined key="setting" onClick={ ()=> { configQList('goods_analysis') }} />,
+                        <EditOutlined key="edit" onClick={() => { configEditor('goods_analysis') } }/>,
                       ]}
                     >
                       
                         <Meta
                           avatar={<Avatar src={date} style={{width: 90, height: 90}}/>}
-                          title="Search by simple rules"
-                          description="Description of the question"
+                          title={ config.editor_configs['goods_analysis']?.label }
+                          description={config.editor_configs['goods_analysis']?.description }
                         />
                      
                     </Card>
@@ -327,15 +329,15 @@ const Welcome = () => {
                       style={{ width: 400, marginTop: 26 }}
                       actions={[
                         <RightSquareOutlined key="run" />,
-                        <SettingOutlined key="setting" />,
-                        <EditOutlined key="edit" />,
+                        <SettingOutlined key="setting" onClick={ ()=> { configQList('chat') }} />,
+                        <EditOutlined key="edit" onClick={() => { configEditor('chat') } }/>,
                       ]}
                     >
                       
                         <Meta
                           avatar={<Avatar src={document} style={{width: 90, height: 90}}/>}
-                          title="Search by simple rules"
-                          description="Description of the question"
+                          title={ config.editor_configs['chat']?.label }
+                          description={config.editor_configs['chat']?.description }
                         />
                      
                     </Card>
@@ -347,15 +349,15 @@ const Welcome = () => {
                           style={{ width: 400, marginTop: 26 }}
                           actions={[
                             <RightSquareOutlined key="run" />,
-                        <SettingOutlined key="setting" />,
-                        <EditOutlined key="edit" />,
+                        <SettingOutlined key="setting" onClick={ ()=> { configQList('marketing_insides') }} />,
+                        <EditOutlined key="edit" onClick={() => { configEditor('marketing_insides') } }/>,
                           ]}
                         >
                           
                             <Meta
                               avatar={<Avatar src={inspiration} style={{width: 90, height: 90}}/>}
-                              title="Search by simple rules"
-                              description="Description of the question"
+                              title={ config.editor_configs['marketing_insides']?.label }
+                              description={config.editor_configs['marketing_insides']?.description }
                             />
                          
                         </Card>
@@ -365,15 +367,15 @@ const Welcome = () => {
                       style={{ width: 400, marginTop: 26 }}
                       actions={[
                         <RightSquareOutlined key="run" />,
-                        <SettingOutlined key="setting" />,
-                        <EditOutlined key="edit" />,
+                        <SettingOutlined key="setting" onClick={ ()=> { configQList('Innovations') }} />,
+                        <EditOutlined key="edit" onClick={() => { configEditor('Innovations') } }/>,
                       ]}
                     >
                       
                         <Meta
                           avatar={<Avatar src={picture} style={{width: 90, height: 90}}/>}
-                          title="Search by simple rules"
-                          description="Description of the question"
+                          title={ config.editor_configs['Innovations']?.label }
+                          description={config.editor_configs['Innovations']?.description }
                         />
                      
                     </Card>

@@ -6,7 +6,8 @@ CREATE TABLE public.queries (
                          params TEXT,
                          ins_date TIMESTAMP NOT NULL DEFAULT now(),
                          ins_user TEXT,
-                         status INT
+                         status INT,
+                         table_data json
                      );
 
     

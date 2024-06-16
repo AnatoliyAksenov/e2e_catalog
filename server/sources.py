@@ -71,6 +71,17 @@ class E2ec:
 
             return True
         
+
+    @staticmethod
+    def update_query_table(conn, /, query_id, table):
+        with conn.cursor() as cur:
+
+            q = """update queries set table_data = %(table)s where id = %(query_id)s"""
+            p = {"query_id": query_id,  'table': json.dumps(table, ensure_ascii=False, default=str)}
+            cur.execute(q,p)
+
+            return True
+        
         
     @staticmethod
     def insert_query_logs(conn, /, query_id, step, status, log=None):
@@ -176,6 +187,7 @@ class E2ec:
                         , description     
                         , question_template template
                         , question_values::json question_values
+                        , table_data
                      from questions_config
                      """
 
