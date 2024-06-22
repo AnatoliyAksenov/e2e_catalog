@@ -218,7 +218,6 @@ class E2ec:
                         , description     
                         , question_template template
                         , question_values::json question_values
-                        , table_data
                      from questions_config
                      """
 

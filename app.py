@@ -3,6 +3,7 @@ import sys
 
 from time import time
 from fastapi import FastAPI, Response
+from fastapi.staticfiles import StaticFiles
 #from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
@@ -62,8 +63,10 @@ async def get_ping():
 app.include_router(add_api)
 
 
+app.mount("/assets", StaticFiles(directory="dist/assets"), name="static")
 
+app.mount("/", StaticFiles(directory="dist",html = True), name="static-dist")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0",  port=8000, reload=False, workers=4)
+    uvicorn.run("app:app", host="0.0.0.0",  port=8080, reload=False, workers=4)

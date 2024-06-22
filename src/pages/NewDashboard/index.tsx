@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom"
+import { /*useNavigate,*/ useLocation } from "react-router-dom"
 
-import { useSelector } from 'react-redux'
+//import { useSelector } from 'react-redux'
 
-import { MenuProps, Row, Col, Layout, Divider, Typography, Steps } from 'antd';
+import { /*MenuProps,*/ Row, Col, Layout, Divider, Typography, Steps } from 'antd';
 
 import RGL, { WidthProvider } from "react-grid-layout";
 import  GridLayout  from 'react-grid-layout';
@@ -18,16 +18,16 @@ import '/node_modules/react-resizable/css/styles.css';
 
 const WidthGridLayout = WidthProvider(RGL);
 
-type MenuItem = Required<MenuProps>['items'][number]
+//type MenuItem = Required<MenuProps>['items'][number]
 
 const { Content } = Layout;
 
 const DEFAULT_LAYOUT = {"w": 8, "h": 9, "x": 0, "y": 0, "i": "", "minW": 3, "maxW": 20, "minH": 3, "maxH": 9, "moved": false, "static": false};
 
 
-export async function loader( {params}:any ) {
+  export async function loader( {params}:any ) {
     //return params.id;
-    return 5
+    return params.id
   }
 
   interface Layout{
@@ -73,40 +73,40 @@ export async function loader( {params}:any ) {
     questionTheme: QuestionTheme,
   }
 
-  interface State{
-    id: number,
-  }
+  // interface State{
+  //   id: number,
+  // }
   const NewDashboard = () => {
 
-      const navigate = useNavigate();
+      //const navigate = useNavigate();
 
       const {state}  =  useLocation();
       const {id} = state;
   
-      const user = useSelector((state: any) => state.user.value);
+      //const user = useSelector((state: any) => state.user.value);
       //if(user.name == "") navigate('/login')
   
-      const [inputs, setInputs] = useState<Inputs>({} as Inputs);
-      const [config, setConfig]  = useState<Config>({} as Config);
+      const [_inputs, setInputs] = useState<Inputs>({} as Inputs);
+      const [config, _setConfig]  = useState<Config>({} as Config);
       const [local, setLocal]   = useState<LocalItem[]>([]);
-      const [height, setHeight]  = useState<number[]>([]);
+      //const [height, setHeight]  = useState<number[]>([]);
   
       useEffect(() => { setInputs({question: "", questionTheme: {}} as Inputs)  },  []);
   
       const layout_ref = useRef<GridLayout>(null);
 
 
-      const fetchQuestionThemes = async () => {
-        const response = await fetch('http://localhost:8000/api/question_themes');
-        const json = await response.json();
-        //const res = json.reduce( (r: string[], e: {table_schema: string}) => [...r, e.table_schema], [])
-        setConfig({...config, questionThemes: json as QuestionTheme[] })
+      // const fetchQuestionThemes = async () => {
+      //   const response = await fetch('/api/question_themes');
+      //   const json = await response.json();
+      //   //const res = json.reduce( (r: string[], e: {table_schema: string}) => [...r, e.table_schema], [])
+      //   setConfig({...config, questionThemes: json as QuestionTheme[] })
         
-      }
+      // }
 
       const fetchRawDashboardData = async  ()  =>  {
 
-        const response  = await fetch('http://localhost:8000/api/raw_dashboard_data?query_id='+id);
+        const response  = await fetch('/api/raw_dashboard_data?query_id='+id);
         const json  = await response.json();
 
         const new_locals = json.map(  (item:any, index: number)  =>  {

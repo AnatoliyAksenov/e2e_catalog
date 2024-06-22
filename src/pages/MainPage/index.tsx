@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Drawer, Menu, Col, Layout, Flex, Button, Divider } from 'antd';
 
 import {Outlet, Link} from "react-router-dom";
-import { useSelector } from 'react-redux'
+//import { useSelector } from 'react-redux'
 
 import { MenuOutlined, HomeOutlined, AppstoreOutlined, AppstoreAddOutlined, MenuFoldOutlined, CloseCircleOutlined } from  '@ant-design/icons';
 
@@ -13,10 +13,10 @@ const { Content } = Layout;
   
 const Sidebar = () => {
     const [visible, setVisible] = useState(false)
-    const user = useSelector((state: any) => state.user.value);
+    //onst user = useSelector((state: any) => state.user.value);
     
 
-    const iconStyle = {color: '#A0A0A0', verticalAlign: 'middle'}
+    //const iconStyle = {color: '#A0A0A0', verticalAlign: 'middle'}
   
     return (
       <Content>

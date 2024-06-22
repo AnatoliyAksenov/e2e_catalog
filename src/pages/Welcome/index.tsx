@@ -1,8 +1,8 @@
 import {useState, useRef, useEffect} from'react'
-import {Layout, Button, Modal, Input, Checkbox, Slider, Form, Upload,  UploadFile, Card, Avatar, Table, Row, Col, Typography, Divider} from 'antd'
+import {Layout, Button, Modal, Input, Checkbox, Slider, Form, Upload,  UploadFile, Card, Avatar, /*Table,*/ Row, Col, Typography, Divider} from 'antd'
 import { useNavigate } from "react-router-dom"
 
-import {SettingOutlined, EditOutlined, EllipsisOutlined, RightSquareOutlined, PlusOutlined, MinusOutlined} from '@ant-design/icons';
+import {SettingOutlined, EditOutlined, /*EllipsisOutlined,*/ RightSquareOutlined, PlusOutlined, MinusOutlined} from '@ant-design/icons';
 
 import { useInterval } from "ahooks"
 
@@ -17,7 +17,7 @@ import date from '../../assets/date-svgrepo-com.svg'
 import document from '../../assets/document-svgrepo-com.svg'
 import inspiration from '../../assets/inspiration-svgrepo-com.svg'
 import picture from '../../assets/picture-svgrepo-com.svg'
-import target from '../../assets/target-svgrepo-com.svg'
+//import target from '../../assets/target-svgrepo-com.svg'
 
 const {Content} = Layout
 
@@ -59,18 +59,18 @@ const Welcome = () => {
 
     const [config, setConfig]  =  useState<Config>({visible: false, editor_configs: {}})
     const [inputs, setInputs]   =  useState({question: '', temperature: 0.1, editor: '', question_values: [] as QVariable[], waiting_id: null, last_report_id: null })
-    const [items, setItems] = useState<any[]>([])
+    //const [items, setItems] = useState<any[]>([])
 
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const upload = useRef<typeof Upload>(null)
-    const [form] =   Form.useForm()
+    //const [form] =   Form.useForm()
 
-    const [questionTheme, setQuestionTheme] = useState('Финансы')
+    //const [questionTheme, setQuestionTheme] = useState('Финансы')
 
 
     const fetchQuestionsConfig  =  async ()  =>  {
       
-      const response  = await fetch(`http://localhost:8000/api/questions_config` );
+      const response  = await fetch(`/api/questions_config` );
       const json  = await response.json();
 
       return json;
@@ -104,7 +104,7 @@ const Welcome = () => {
             })
         }
         
-        const response  = await fetch(`http://localhost:8000/api/process_query`, init );
+        const response  = await fetch(`/api/process_query`, init );
         const json  = await response.json();
 
         return json;
@@ -125,7 +125,7 @@ const Welcome = () => {
           })
       }
       
-      const response  = await fetch(`http://localhost:8000/api/company_query`, init );
+      const response  = await fetch(`/api/company_query`, init );
       const json  = await response.json();
 
       return json;
@@ -133,7 +133,7 @@ const Welcome = () => {
 
     const fetchQuestionStatus  =  async (id:any)  =>  {
       
-      const response  = await fetch(`http://localhost:8000/api/question_status/${id}`  );
+      const response  = await fetch(`/api/question_status/${id}`  );
       const json  = await response.json();
 
       return json;
@@ -170,7 +170,7 @@ const Welcome = () => {
           })
       }
       
-      const response  = await fetch(`http://localhost:8000/api/save_template`, init );
+      const response  = await fetch(`/api/save_template`, init );
       const json  = await response.json();
 
       return json;
@@ -182,7 +182,7 @@ const Welcome = () => {
     };
 
     const onOk = () => {
-        fetchNewQuestion().then((data)  => {
+        fetchNewQuestion().then((_data)  => {
             //setItems([...items,data as any])
             setConfig({...config, visible: false}); 
         }).catch( (error:any) => {
@@ -256,7 +256,7 @@ const Welcome = () => {
           })
       }
       
-      const response  = await fetch(`http://localhost:8000/api/save_variables`, init );
+      const response  = await fetch(`/api/save_variables`, init );
       const json  = await response.json();
 
       return json;
@@ -402,7 +402,7 @@ const Welcome = () => {
                     </Form.Item>
 
                     <Form.Item label="Текстовые ресурсы" getValueFromEvent={(e:any)   => setFileList(e.fileList)  }>
-                        <Upload accept='application/docx' action='http://localhost:8000/api/uploadfile/' ref={upload} onChange={onUploadChange}> PDF, DOCX или TXT файлы</Upload>
+                        <Upload accept='application/docx' action='/api/uploadfile/' ref={upload} onChange={onUploadChange}> PDF, DOCX или TXT файлы</Upload>
                     </Form.Item>
 
                 </Form>
@@ -427,7 +427,7 @@ const Welcome = () => {
                     </Form.Item>
 
                     <Form.Item label="Текстовые файлы" getValueFromEvent={(e:any)   => setFileList(e.fileList)  }>
-                        <Upload accept='application/docx' action='http://localhost:8000/api/uploadfile/' ref={upload} onChange={onUploadChange}> PDF, DOCX, TXT файлы</Upload>
+                        <Upload accept='application/docx' action='/api/uploadfile/' ref={upload} onChange={onUploadChange}> PDF, DOCX, TXT файлы</Upload>
                     </Form.Item>
 
                 </Form>
@@ -481,7 +481,7 @@ const Welcome = () => {
                   <Button onClick={  ()=>  setInputs({...inputs, question_values: [{key: 'ключ', variable:  'значение'}]})  }>Новый параметр</Button>
                   </>
                    :
-                  inputs.question_values.map((e:any, index:number) => {
+                  inputs.question_values.map((_e:any, index:number) => {
                   return (
                     <>
                    <Input key={'inp_key_'+index} size='small' style={{width: 200}} value={inputs.question_values[index].key} onChange={  (e:any)  =>  { const qv = JSON.parse(JSON.stringify(inputs.question_values)); 
@@ -508,7 +508,7 @@ const Welcome = () => {
             <Modal key={config.modal_waiting} open={config.waiting_visible} confirmLoading={config.waiting_success} okText="Перейти к отчету" onOk={ ()=> { navigate('/report_view',{state:{id: inputs.last_report_id}}) }}>
               <Typography.Title level={4}>Состояние работы</Typography.Title>
               { config.waiting_success? <Typography.Title level={5}>Ожидание выполнения</Typography.Title>:
-                                       <Typography.Link href={'http://localhost:8000/api/question_pdf_report/'+inputs.last_report_id}>Скачать pdf</Typography.Link>}
+                                       <Typography.Link href={'api/question_pdf_report/'+inputs.last_report_id}>Скачать pdf</Typography.Link>}
             </Modal>
         </>
     )

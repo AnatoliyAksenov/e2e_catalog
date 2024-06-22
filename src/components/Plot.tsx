@@ -82,7 +82,7 @@ const Plot = ( params: PlotParams ) => {
             return (<ResponsiveContainer width="100%" height={height}>
                 <PieChart width={400} height={400}>
                     <Pie dataKey={params.y} data={params.data} nameKey={params.x} fill="#8884d8" label>
-                        {params.data.map((entry, index) => (
+                        {params.data.map((_entry, index) => (
                             <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                         ))}
                     </Pie>
@@ -94,7 +94,7 @@ const Plot = ( params: PlotParams ) => {
             return (<ResponsiveContainer width="100%" height={height}>
                 <PieChart width={400} height={400}>
                     <Pie dataKey={params.y} data={params.data} nameKey={params.x} fill="#8884d8" label radius={100} innerRadius={70}>
-                        {params.data.map((entry, index) => (
+                        {params.data.map((_entry, index) => (
                             <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                         ))}
                     </Pie>

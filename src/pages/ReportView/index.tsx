@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom"
+import { /*useNavigate,*/ useLocation } from "react-router-dom"
 
-import { useSelector } from 'react-redux'
+//import { useSelector } from 'react-redux'
 
 import { Row, Col, Layout, Typography, Menu, MenuProps } from 'antd';
 
-import Markdown from 'react-markdown'
+//import Markdown from 'react-markdown'
 
 import Plot from '../../components/Plot'
-import { set } from "lodash";
+//import { set } from "lodash";
 
 type MenuItem = Required<MenuProps>['items'][number]
 
@@ -28,22 +28,22 @@ const {Content} = Layout;
     chart_type: string,
   }
 
-  interface Inputs{
-    question: string,
-  }
+  // interface Inputs{
+  //   question: string,
+  // }
 
-  interface State{
-    id: number,
-  }
+  // interface State{
+  //   id: number,
+  // }
   const ReportView = () => {
 
-      const navigate = useNavigate();
+      //const navigate = useNavigate();
 
       const {state}  =  useLocation();
       const {id} = state;
 
   
-      const user = useSelector((state: any) => state.user.value);
+      //const user = useSelector((state: any) => state.user.value);
       //if(user.name == "") navigate('/login')
   
 
@@ -51,7 +51,7 @@ const {Content} = Layout;
 
   
       const fetchQuestioReport = async (id:string) => {
-        const response = await fetch(`http://localhost:8000/api/question_report/${id}`);
+        const response = await fetch(`/api/question_report/${id}`);
         const json = await response.json();
 
         return json;

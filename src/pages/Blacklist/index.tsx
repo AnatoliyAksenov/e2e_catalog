@@ -1,7 +1,7 @@
 import { useEffect, useState} from "react";
-import { useNavigate, useLocation } from "react-router-dom"
+//import { useNavigate, useLocation } from "react-router-dom"
 
-import { useSelector } from 'react-redux'
+//import { useSelector } from 'react-redux'
 
 
 import { Row, Col, Layout, Typography,   } from 'antd';
@@ -11,17 +11,17 @@ const {Content} = Layout;
 
   const Blacklist = () => {
 
-      const navigate = useNavigate();
+      //const navigate = useNavigate();
 
       const [blacklist, setBlacklist]  = useState<string[]>([]);
       
   
-      const user = useSelector((state: any) => state.user.value);
+      //const user = useSelector((state: any) => state.user.value);
       //if(user.name == "") navigate('/login')
   
   
       const fetchBlacklist = async () => {
-        const response = await fetch(`http://localhost:8000/api/blacklist`);
+        const response = await fetch(`/api/blacklist`);
         const json = await response.json();
 
         return json;
@@ -52,7 +52,7 @@ const {Content} = Layout;
       
                 <Row style={{width: '100%'}}>
                   <Col span={24} style={{width: '100%'}}>
-                    { blacklist.map(  (data:string, index:number)  =>  {
+                    { blacklist.map(  (data:string, _index:number)  =>  {
                       return (<Typography.Paragraph> {data} </Typography.Paragraph>)
                     } ) }
                   </Col>
