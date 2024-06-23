@@ -13,12 +13,13 @@ from server.sources import FILE_STORAGE_BUCKET
 from server.templates import templates
 from server.utils import process_query, get_text_by_link, get_links, headers, get_closed_resource_data
 
-from jinja2 import Environment, BaseLoader
+from jinja2 import Environment, BaseLoader, Undefined
 
 import pandas as pd
 
 import random
 import string
+import textdistance
 
 from time import time
 
@@ -26,7 +27,16 @@ from tika import parser
 
 from weasyprint import HTML
 
+
 #BLACKLIST = ['google.com', 'microsoft.com', ]
+
+class SilentUndefined(Undefined):
+    '''
+    Dont break pageloads because vars arent there!
+    '''
+    def _fail_with_undefined_error(self, *args, **kwargs):
+        print('JINJA2: something was undefined!')
+        return None
 
 
 async def what_we_do(connection, model, question, theme):
@@ -267,6 +277,54 @@ async def query(connection, model, file_storage, data):
     pass
 
 
+async def validate(model, query, collection):
+    """
+    Asynchronous method that validates a collection of answers using the provided query.
+    
+    This method checks the validity of the collection using the provided model and question. 
+    It then updates the query status accordingly.
+    
+    Parameters
+    ----------
+    model  : Model Object
+        The llm model used for generating responses.
+    query  : Query Object
+        The query object containing the validation question.
+    collection  : Collection Object
+        The collection object containing the information for validation.
+    
+    Returns
+    -------
+    string
+    """
+    prompt = templates.get('validation').get('prompt')
+    temp = templates.get('validation').get('temperature', 0.5)
+
+    coll = [x.get('answer') for x in collection]
+    text = str(coll)
+
+    res = model.call(prompt.format(q=query, text=text), temp=temp)
+    res  = res.strip()
+
+    i = text.find(res)
+
+    if res in coll:
+        index = coll.index(res)
+    else:
+        # find by levensstain distance 
+        min_index  = 0
+        min_distance = float('inf')
+        for i,x in enumerate(coll):
+            dist = textdistance.algorithms.levenshtein(x.lower(), res.lower())
+            if dist < min_distance:
+                min_distance = dist
+                min_index = i
+
+        index = min_index
+
+    return collection[int(index)]
+
+
 async def company_query(connection, model, file_storage, query_id, data):
     """
     Asynchronous method that queries a company's information using the provided parameters.
@@ -309,6 +367,7 @@ async def company_query(connection, model, file_storage, query_id, data):
     use_internet = data.get('use_internet', False)
     use_closed_sources = data.get('use_closed_sources', False)
     additional_questions = data.get('additional_questions', [])
+    get_results = data.get('get_results', 3)
 
     conf = E2ec.get_question_config(connection, question_key=key)
     query = E2ec.get_query(connection, query_id)
@@ -318,6 +377,7 @@ async def company_query(connection, model, file_storage, query_id, data):
     if not use_internet and content:
         # search only in content
         
+        # collect answers from attached content
         for q in conf.get('question_values'):
             only_question = q.get('variable')
             question = f" '{only_question}' по компании '{query.get('query')}'"
@@ -330,6 +390,8 @@ async def company_query(connection, model, file_storage, query_id, data):
 
             res = model.call(prompt, temp=temp)
             variables[key] = res
+
+        # validate answers
 
         E2ec.update_query_params(connection, query_id, params=variables)
         E2ec.update_query_status(connection, query_id, 0)
@@ -362,7 +424,8 @@ async def company_query(connection, model, file_storage, query_id, data):
                 inn = findarr[0]
                 break
     
-
+    
+    # for loop by user defined variables
     for q in conf.get('question_values'):
         only_question = q.get('variable')
         question = f" '{only_question}' компания '{query.get('query')}' ИНН {inn}"
@@ -371,19 +434,34 @@ async def company_query(connection, model, file_storage, query_id, data):
         links = get_links('ddg', query_params={"q":question}, request_params=request_params)
         links = [x for x in links if x.startswith('http')]
         links = [x for x in links if not any([xx in x for xx in BLACKLIST])]
+        links = list(set(links))
+
+        # collect answers from 
+        collection  = []
+        cnt = 0
         for link in links:
             text = await get_text_by_link(link, request_params=request_params)
-            text =re.sub('\s{2,}', ' ', text)
+            text =re.sub('\s{2,}', ' ', text or '')
 
             if text:
                 qprompt = question_prompt.format(text=text, q=only_question)
                 res = model.call(qprompt,  temp=temperature)
                 res = res.strip()
-                
+                collection.append({'link': link, 'answer': res})
+                cnt += 1
+
                 #TODO looging requests and model answers
-                if res:
-                    variables[key]  = res
+                if cnt == get_results:
                     break
+        else:
+            # we have no answers
+            variables[key] = {"link": '', "answer": ''}
+
+        res = await validate(model, only_question, collection)
+        variables[key] = res
+                       
+    E2ec.update_query_params(connection, query_id, params=variables)
+
     
     if use_closed_sources:
         #closed_res = E2ec.get_closed_resources(connection)
@@ -394,7 +472,7 @@ async def company_query(connection, model, file_storage, query_id, data):
         except Exception as e:
             print(e)
 
-    E2ec.update_query_params(connection, query_id, params=variables)
+    
     E2ec.update_query_status(connection, query_id, 0)
 
 
@@ -494,7 +572,7 @@ async def question_report(connection, query_id):
 
     conf = E2ec.get_question_config(connection, question_key=data.get('theme'))
 
-    rtemplate = Environment(loader=BaseLoader()).from_string(conf.get('template'))
+    rtemplate = Environment(loader=BaseLoader(), undefined=SilentUndefined).from_string(conf.get('template'))
     report = rtemplate.render(**json.loads(data.get('params')))
 
     return (report, data, conf)

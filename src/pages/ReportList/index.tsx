@@ -1,8 +1,9 @@
 import {useState,  useEffect} from'react'
-import {Layout, Button, Typography, Table, /*Tooltip,*/ Tag} from 'antd'
+import {Layout, Button, Typography, Table, /*Tooltip,*/ Form} from 'antd'
 import { useNavigate } from "react-router-dom"
 
-import { LinkOutlined } from '@ant-design/icons'
+import { LinkOutlined,CheckSquareOutlined, CloseSquareOutlined } from '@ant-design/icons'
+import { Dictionary } from 'lodash'
 
 const {Content} = Layout
 
@@ -33,7 +34,7 @@ const ReportList = () => {
 
     const link_render = (_obj:any, record:any) => { 
         return (
-            <Button type="link" onClick={ () => {  navigate('/new_dashboard',{state:{id: record.id}}) }}><LinkOutlined /></Button> 
+            <Button type="link" onClick={ () => {  navigate('/report_view',{state:{id: record.id}}) }}><LinkOutlined /></Button> 
         )}
 
     // const questions_render = (_obj:any, record:any)  =>  {
@@ -43,23 +44,38 @@ const ReportList = () => {
     
     // }
 
+    const labels:any= {'use_internet':'Использовать интернет', 'use_closed_resources': 'Использовать закрытые источники', 'inn':'ИНН', 'temperature':'Температура'}
+    const query_types:any = {"simple_question": "Анализ контрагентов", "goods_analysis": "Анализ товаров", "chat": "Произвольный запрос", "marketing_insides": "Маркетинговый зпрос", "Innovations": "Инновации и технологии"}
+    
     const alt_questions_render = (_obj:any, record:any)   =>   {
-        const questions   =  JSON.parse(  (record.questions  ||  '[]'));
+        const questions   =  JSON.parse(  (record.params  ||  '[]'));
 
-        const q = record.theme == 'simple_question' ? null: questions.map(  (e:string)  =>  { return <Tag><span style={{width: 20, whiteSpace: 'collapse'}}>{e}</span></Tag>} );
-        
-        return ( q )
+        //const q = record.theme == 'simple_question' ? null: questions.map(  (e:string)  =>  { return <Tag><span style={{width: 20, whiteSpace: 'collapse'}}>{e}</span></Tag>} );
+        const q = ['use_internet', 'use_closed_resources', 'inn', 'temperature'].map(   (e:string)   =>   {
+            return (<tr>
+                <td>{labels[e]}</td>
+                <td>{  typeof questions[e] == 'boolean' ?  questions[e]?<CheckSquareOutlined />:<CloseSquareOutlined />: questions[e] }</td>
+                </tr> )
+        })
+        return ( <table>{q}</table> )
 
+    }
+
+    const query_type_render  =  (_obj:any, record:any)  =>  {
+
+        return (<Typography.Text>{ query_types[record.theme] }</Typography.Text>)
     }
 
 
 
     const columns = [
+        {key: "id", dataIndex: "id", title: "#"},
         {key: "query", dataIndex: "query", title: "Запрос"}, 
-        {key: "theme", dataIndex: "theme", title: "Тип запроса"},
-        {key: 'questions', dataIndex: "questions", title: "Вопросы", render: alt_questions_render},         
-        {key: "params", dataIndex: "params", title: "Параметры"}, 
-        {key: "link", dataIndex: "id", title: "Link", render:link_render }]   
+        {key: "theme", dataIndex: "theme", title: "Тип запроса", render: query_type_render},
+        {key: 'questions', dataIndex: "questions", title: "Параметры", render: alt_questions_render},         
+        //{key: "params", dataIndex: "params", title: "Параметры"}, 
+        {key: "link", dataIndex: "id", title: "Link", render:link_render }]
+
 
     return (
         <>

@@ -67,6 +67,7 @@ app.mount("/assets", StaticFiles(directory="dist/assets"), name="static")
 
 app.mount("/", StaticFiles(directory="dist",html = True), name="static-dist")
 
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0",  port=8080, reload=False, workers=4)

@@ -71,6 +71,14 @@ npm install
 npm run dev
 ```
 
+- Сборка front-end
+
+```
+npm run devbuild # for development with sourcemap
+
+npm run build # for production mode
+```
+
 
 ### Docker compose
 

@@ -68,15 +68,15 @@ class RemoteModelStorage(object):
     def add(self, load=False, device='gpu'):
         pass
 
-    def call(self, prompt, max_tokens=1024, temp=.75):
+    def call(self, prompt, max_tokens=10016, temp=.75):
 
         response = self._client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="model",
             messages=[
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": prompt},
+                        {"type": "text", "text": str(prompt)},
                     ],
                 }
             ],

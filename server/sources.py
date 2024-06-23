@@ -168,7 +168,9 @@ class E2ec:
         with conn.cursor() as cur:
             q = """select *
                     from queries
-                    where ins_date >= %(date_from)s"""
+                    where ins_date >= %(date_from)s
+                    order by ins_date desc
+                """
             p = {"date_from": date_from}
             cur.execute(q,p)
             res  = cur.fetchall()

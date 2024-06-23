@@ -2,7 +2,7 @@ import {useState, useRef, useEffect} from'react'
 import {Layout, Button, Modal, Input, Checkbox, Slider, Form, Upload,  UploadFile, Card, Avatar, /*Table,*/ Row, Col, Typography, Divider} from 'antd'
 import { useNavigate } from "react-router-dom"
 
-import {SettingOutlined, EditOutlined, /*EllipsisOutlined,*/ RightSquareOutlined, PlusOutlined, MinusOutlined} from '@ant-design/icons';
+import {SettingOutlined, EditOutlined, /*EllipsisOutlined,*/ RightSquareOutlined, PlusOutlined, MinusOutlined, InboxOutlined} from '@ant-design/icons';
 
 import { useInterval } from "ahooks"
 
@@ -17,11 +17,14 @@ import date from '../../assets/date-svgrepo-com.svg'
 import document from '../../assets/document-svgrepo-com.svg'
 import inspiration from '../../assets/inspiration-svgrepo-com.svg'
 import picture from '../../assets/picture-svgrepo-com.svg'
+
 //import target from '../../assets/target-svgrepo-com.svg'
 
 const {Content} = Layout
 
-const {Meta} = Card;
+const {Meta} = Card
+
+const { Dragger } = Upload
 
 interface EditorConfig{
   template: string,
@@ -58,7 +61,7 @@ const Welcome = () => {
     const navigate = useNavigate()
 
     const [config, setConfig]  =  useState<Config>({visible: false, editor_configs: {}})
-    const [inputs, setInputs]   =  useState({question: '', temperature: 0.1, editor: '', question_values: [] as QVariable[], waiting_id: null, last_report_id: null })
+    const [inputs, setInputs]   =  useState({question: '', temperature: 0.1, editor: '', question_values: [] as QVariable[], waiting_id: null, last_report_id: null, use_internet: true, get_results: 3})
     //const [items, setItems] = useState<any[]>([])
 
     const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -120,6 +123,7 @@ const Welcome = () => {
               temperature: inputs.temperature,
               use_internet: config.use_internet,
               use_closed_sources: config.use_closed_sources,
+              get_results: inputs.get_results,
               files: fileList.map((file) => file.response.key)
 
           })
@@ -151,9 +155,14 @@ const Welcome = () => {
                 setInputs({...inputs, waiting_id: null})
                
               }
+              if(data.status ==  500){
+                console.log("Error: ", data)
+                setInputs({...inputs, waiting_id: null, last_report_id: null})
+              }
                 
             }).catch( (error) => {
                 console.log(error)
+                setInputs({...inputs, waiting_id: null})
             })
       }
 
@@ -282,6 +291,11 @@ const Welcome = () => {
       
     }
 
+    const onRemoveVariable = (index: number)   =>   {
+      const qv = inputs.question_values
+      qv.splice(index, 1)
+      setInputs({...inputs, question_values: qv}) 
+    }
     return (
         <>
             <Content>
@@ -408,26 +422,39 @@ const Welcome = () => {
                 </Form>
             </Modal>
 
-            <Modal title="Запрос по компании" open={config.company_visible} onOk={ onCompanyOk } okText="Запуск" destroyOnClose={false} onCancel={ () =>{ setConfig({...config, company_visible: false}) }} cancelText="Закрыть" width={650}>
+            <Modal title="Запрос по компании" open={config.company_visible} onOk={ onCompanyOk } okText="Запуск" destroyOnClose={false} onCancel={ () =>{ setConfig({...config, company_visible: false}) }} cancelText="Закрыть" width={750}>
                 <Form layout='horizontal'>
-                    <Form.Item label="Запрос" labelCol={{span: 6}}   >
+                    <Form.Item label="Запрос" labelCol={{span: 10}}   >
                     <Input placeholder="Название компании" onChange={ (e:any) => setInputs({...inputs, question: e.target.value})}/>      
                     </Form.Item>
                     
-                    <Form.Item label="Использовать интернет ресурсы"  labelCol={{span: 6}} >
+                    <Form.Item label="Использовать интернет ресурсы"  labelCol={{span: 10}} >
                     <Checkbox checked={config.use_internet} onChange={( e:any)  => setConfig({...config, use_internet: e.target.checked}) }> Использовать интернет ресурсы</Checkbox>
                     </Form.Item>
 
-                    <Form.Item label="Использвоать закрытые источники"  labelCol={{span: 6}} >
+                    <Form.Item label="Проверять источников"  labelCol={{span: 10}} >
+                      <Slider min={1} max={10} step={1} onChange={(e:any)  => setInputs({...inputs, get_results: e}) } defaultValue={3} />
+                    </Form.Item>
+
+                    <Form.Item label="Использвоать закрытые источники"  labelCol={{span: 10}} >
                     <Checkbox checked={config.use_closed_sources} onChange={( e:any)  => setConfig({...config, use_closed_sources: e.target.checked}) }>Использовать закрытые источники</Checkbox>
                     </Form.Item>
     
-                    <Form.Item label="Темпиратура"  labelCol={{span: 6}} >
-                      <Slider min={0.1} max={1} step={0.1} onChange={(e:any)  => setInputs({...inputs, temperature: e}) } defaultValue={.5} />
+                    <Form.Item label="Темпиратура"  labelCol={{span: 10}} >
+                      <Slider min={0.1} max={1} step={0.1} onChange={(e:any)  => setInputs({...inputs, temperature: e}) } defaultValue={.2} />
                     </Form.Item>
 
-                    <Form.Item label="Текстовые файлы" getValueFromEvent={(e:any)   => setFileList(e.fileList)  }>
-                        <Upload accept='application/docx' action='/api/uploadfile/' ref={upload} onChange={onUploadChange}> PDF, DOCX, TXT файлы</Upload>
+                    <Form.Item>
+                        <Dragger  action='/api/uploadfile/' onChange={onUploadChange}>
+                          <p className="ant-upload-drag-icon">
+                            <InboxOutlined />
+                          </p>
+                          <p className="ant-upload-text">Кликните или перетащите сюда файлы для загрузки</p>
+                          <p className="ant-upload-hint">
+                            Можно загружить любые форматы файлов, из которых может быть извлечен текст (кроме картинок).
+                          </p>
+                        </Dragger>
+                        
                     </Form.Item>
 
                 </Form>
@@ -461,9 +488,18 @@ const Welcome = () => {
                   //console.log(config.selection)
                   config.selection.session.insert({row: config.selection.cursor.row,column: config.selection.cursor.column}, '{{ variable }}')
                 }}>asdf</Button> */}
-
+                  <Typography.Title level={5}>Пользовательские поля</Typography.Title>
                   {
                     (config.question_values|| []).map((e:any, index:number)  => {
+                      return (
+                        <Button key={index} size="small" onClick={   ()=>  {config.selection.session.insert({row: config.selection.cursor.row,column: config.selection.cursor.column}, `{{ ${e.key}.answer }}`)}    }>{e.variable}</Button>
+                      )
+                    })
+                  }
+                  <Divider type='horizontal' />
+                  <Typography.Title level={5}>Технические поля</Typography.Title>
+                  {
+                    [{variable: "ИНН компании", key: 'inn'}, {variable: "Использовался интернет", key:'use_internet'}, {variable:'Использовались закрытые источники',key:'use_closed_resources' }].map((e:any, index:number)  => {
                       return (
                         <Button key={index} size="small" onClick={   ()=>  {config.selection.session.insert({row: config.selection.cursor.row,column: config.selection.cursor.column}, `{{ ${e.key} }}`)}    }>{e.variable}</Button>
                       )
@@ -490,7 +526,7 @@ const Welcome = () => {
                    <Input key={'inp_var_'+index} size="small"  style={{width: 300}} value={inputs.question_values[index].variable} onChange={  (e:any)  =>  {const qv = JSON.parse(JSON.stringify(inputs.question_values)); 
                     qv[index].variable = e.target.value; setInputs({...inputs, question_values: qv})}  
                     }/>
-                    <Button key={'inp_btn_'+index} size="small" onClick={  ()=>  setInputs({...inputs, question_values: inputs.question_values.splice(index, 1)})   }><MinusOutlined /></Button>
+                    <Button key={'inp_btn_'+index} size="small" onClick={  ()=>  onRemoveVariable(index)  }><MinusOutlined /></Button>
                     <br />
                    </>
                   )
@@ -505,10 +541,10 @@ const Welcome = () => {
                  }
                 
             </Modal>
-            <Modal key={config.modal_waiting} open={config.waiting_visible} confirmLoading={config.waiting_success} okText="Перейти к отчету" onOk={ ()=> { navigate('/report_view',{state:{id: inputs.last_report_id}}) }}>
+            <Modal key={config.modal_waiting} open={config.waiting_visible} confirmLoading={config.waiting_success} okText="Перейти к отчету" onOk={ ()=> { navigate('/report_view',{state:{id: inputs.last_report_id}}) }} onCancel={ () => { setConfig({...config, waiting_visible: false}) }}>
               <Typography.Title level={4}>Состояние работы</Typography.Title>
               { config.waiting_success? <Typography.Title level={5}>Ожидание выполнения</Typography.Title>:
-                                       <Typography.Link href={'api/question_pdf_report/'+inputs.last_report_id}>Скачать pdf</Typography.Link>}
+                                       inputs.last_report_id?<Typography.Link href={'api/question_pdf_report/'+inputs.last_report_id}>Скачать pdf</Typography.Link>: <Typography.Text>Error</Typography.Text>}
             </Modal>
         </>
     )

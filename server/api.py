@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, UploadFile, BackgroundTasks
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, RedirectResponse
 from typing import Annotated
 from fastapi import Depends
 from io import BytesIO
@@ -134,3 +134,9 @@ async def blacklist(request: Request, connection: Annotated[object, Depends(conn
 async def blacklist(request: Request, connection: Annotated[object, Depends(connection)]):
     res  = await processes.get_closed_sources(connection)
     return res
+
+
+@router.get('/dashboards')
+async def dashboards():
+    return RedirectResponse(url='/')
+
