@@ -54,6 +54,17 @@ interface QVariable{
   variable: string,
 }
 
+interface Inputs{
+  question?: string, 
+  temperature?: number, 
+  editor?: string, 
+  question_values?: QVariable[], 
+  waiting_id?: number, 
+  last_report_id?: number, 
+  use_internet?: boolean, 
+  get_results?: number, 
+  editor_config?: any
+}
 
 
 const Welcome = () => {
@@ -61,7 +72,7 @@ const Welcome = () => {
     const navigate = useNavigate()
 
     const [config, setConfig]  =  useState<Config>({visible: false, editor_configs: {}})
-    const [inputs, setInputs]   =  useState({question: '', temperature: 0.1, editor: '', question_values: [] as QVariable[], waiting_id: null, last_report_id: null, use_internet: true, get_results: 3})
+    const [inputs, setInputs]   =  useState<Inputs>({} as Inputs)
     //const [items, setItems] = useState<any[]>([])
 
     const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -152,17 +163,17 @@ const Welcome = () => {
                 const nid = (config.modal_waiting || 0)+1
 
                 setConfig({...config,  waiting_success: false, modal_waiting: nid})
-                setInputs({...inputs, waiting_id: null})
+                setInputs({...inputs, waiting_id: undefined})
                
               }
               if(data.status ==  500){
                 console.log("Error: ", data)
-                setInputs({...inputs, waiting_id: null, last_report_id: null})
+                setInputs({...inputs, waiting_id: undefined, last_report_id: undefined})
               }
                 
             }).catch( (error) => {
                 console.log(error)
-                setInputs({...inputs, waiting_id: null})
+                setInputs({...inputs, waiting_id: undefined})
             })
       }
 
@@ -224,11 +235,8 @@ const Welcome = () => {
               const ll = JSON.parse(JSON.stringify(config.editor_configs));
               ll[config.editor_key||''].template = inputs.editor;
 
-              setConfig({...config, editor_configs: ll});
+              setConfig({...config, editor_configs: ll, editor_visible: false});
               setConfig({...config, editor_key: ''});
-
-              //setConfig({...inputs, editor: ''});
-              setConfig({...config, editor_visible: false})
             }
           })
           .catch( (error) => {
@@ -248,10 +256,16 @@ const Welcome = () => {
     }
 
     const configQList  = (key:string)  =>  {
-      const lst  = config.editor_configs[key].question_values;
+      const lst  = config.editor_configs[key].question_values || [];
       setInputs({...inputs, question_values:  lst })
       setConfig({...config, qlist_visible: true, editor_key: key})
       
+    }
+
+    const configRun =  (key:string)   =>   {
+      const lst  = config.editor_configs[key]|| {};
+      setInputs({...inputs, editor_config:  lst  })
+      setConfig({...config, company_visible: true, editor_key: key})
     }
 
     const fetchSaveVariables  =  async ()  =>  {
@@ -278,21 +292,19 @@ const Welcome = () => {
           const ll = JSON.parse(JSON.stringify(config.editor_configs));
             ll[config.editor_key||''].question_values = inputs.question_values;
 
-            setConfig({...config, editor_configs: ll});
+            setConfig({...config, editor_configs: ll, qlist_visible: false});
             setInputs({...inputs, question_values: []});
-          
-          setConfig({...config, qlist_visible: false})
+
         }
       }).catch(  (error:any)  =>  {
         console.log(error);
         
-
       })     
       
     }
 
     const onRemoveVariable = (index: number)   =>   {
-      const qv = inputs.question_values
+      const qv = inputs.question_values || []
       qv.splice(index, 1)
       setInputs({...inputs, question_values: qv}) 
     }
@@ -306,7 +318,7 @@ const Welcome = () => {
                     <Card
                       style={{ width: 400, marginTop: 26 }}
                       actions={[
-                        <RightSquareOutlined key="run" onClick={ () => (setConfig({...config, company_visible: true, editor_key: 'simple_question'}))} />,
+                        <RightSquareOutlined key="run" onClick={ () => ( configRun('simple_question') )} />,
                         <SettingOutlined key="setting" onClick={ ()=> { configQList('simple_question') }} />,
                         <EditOutlined key="edit" onClick={() => { configEditor('simple_question') } }/>,
                       ]}
@@ -324,7 +336,7 @@ const Welcome = () => {
                     <Card
                       style={{ width: 400, marginTop: 26 }}
                       actions={[
-                        <RightSquareOutlined key="run" onClick={ () => (setConfig({...config, visible: true, editor_key: 'goods_analysis'}))}/>,
+                        <RightSquareOutlined key="run" onClick={ () => ( configRun('goods_analysis') )}/>,
                         <SettingOutlined key="setting" onClick={ ()=> { configQList('goods_analysis') }} />,
                         <EditOutlined key="edit" onClick={() => { configEditor('goods_analysis') } }/>,
                       ]}
@@ -342,9 +354,9 @@ const Welcome = () => {
                     <Card
                       style={{ width: 400, marginTop: 26 }}
                       actions={[
-                        <RightSquareOutlined key="run" />,
-                        <SettingOutlined key="setting" onClick={ ()=> { configQList('chat') }} />,
-                        <EditOutlined key="edit" onClick={() => { configEditor('chat') } }/>,
+                        <RightSquareOutlined key="run" onClick={ () => {} }/>,
+                        <SettingOutlined key="setting" />,
+                        <EditOutlined key="edit" />,
                       ]}
                     >
                       
@@ -411,7 +423,7 @@ const Welcome = () => {
                     <Checkbox checked={config.use_closed_sources} onChange={( e:any)  => setConfig({...config, use_closed_sources: e.target.checked}) }> Использовать закрытые источники</Checkbox>
                     </Form.Item>
     
-                    <Form.Item label="Темпиратута"  labelCol={{span: 6}} >
+                    <Form.Item label="Температута"  labelCol={{span: 6}} >
                       <Slider min={0.1} max={1} step={0.1} onChange={(e:any)  => setInputs({...inputs, temperature: e}) } defaultValue={.5} />
                     </Form.Item>
 
@@ -422,10 +434,10 @@ const Welcome = () => {
                 </Form>
             </Modal>
 
-            <Modal title="Запрос по компании" open={config.company_visible} onOk={ onCompanyOk } okText="Запуск" destroyOnClose={false} onCancel={ () =>{ setConfig({...config, company_visible: false}) }} cancelText="Закрыть" width={750}>
+            <Modal title={ (inputs.editor_config ||{}).label || 'New request'} open={config.company_visible} onOk={ onCompanyOk } okText="Запуск" destroyOnClose={false} onCancel={ () =>{ setConfig({...config, company_visible: false}) }} cancelText="Закрыть" width={750}>
                 <Form layout='horizontal'>
-                    <Form.Item label="Запрос" labelCol={{span: 10}}   >
-                    <Input placeholder="Название компании" onChange={ (e:any) => setInputs({...inputs, question: e.target.value})}/>      
+                    <Form.Item label="Запрос" labelCol={{span: 10}} tooltip="Введите детали запроса. Наименование компании, товара или отрасли для анализа">
+                      <Input placeholder="Введите детали запроса" onChange={ (e:any) => setInputs({...inputs, question: e.target.value})}/>      
                     </Form.Item>
                     
                     <Form.Item label="Использовать интернет ресурсы"  labelCol={{span: 10}} >
@@ -440,7 +452,7 @@ const Welcome = () => {
                     <Checkbox checked={config.use_closed_sources} onChange={( e:any)  => setConfig({...config, use_closed_sources: e.target.checked}) }>Использовать закрытые источники</Checkbox>
                     </Form.Item>
     
-                    <Form.Item label="Темпиратура"  labelCol={{span: 10}} >
+                    <Form.Item label="Температура"  labelCol={{span: 10}} >
                       <Slider min={0.1} max={1} step={0.1} onChange={(e:any)  => setInputs({...inputs, temperature: e}) } defaultValue={.2} />
                     </Form.Item>
 
@@ -484,10 +496,6 @@ const Welcome = () => {
                 </Col>
                 <Col span={6}>
                 
-                {/* <Button onClick={  ()  =>   {
-                  //console.log(config.selection)
-                  config.selection.session.insert({row: config.selection.cursor.row,column: config.selection.cursor.column}, '{{ variable }}')
-                }}>asdf</Button> */}
                   <Typography.Title level={5}>Пользовательские поля</Typography.Title>
                   {
                     (config.question_values|| []).map((e:any, index:number)  => {
@@ -499,7 +507,7 @@ const Welcome = () => {
                   <Divider type='horizontal' />
                   <Typography.Title level={5}>Технические поля</Typography.Title>
                   {
-                    [{variable: "ИНН компании", key: 'inn'}, {variable: "Использовался интернет", key:'use_internet'}, {variable:'Использовались закрытые источники',key:'use_closed_resources' }].map((e:any, index:number)  => {
+                    [{variable: "ИНН компании", key: 'inn'}, {variable: "Использовался интернет", key:'use_internet'}, {variable:'Использовались закрытые источники',key:'use_closed_resources' }, {variable: "Запрос пользователя", key: 'query'}].map((e:any, index:number)  => {
                       return (
                         <Button key={index} size="small" onClick={   ()=>  {config.selection.session.insert({row: config.selection.cursor.row,column: config.selection.cursor.column}, `{{ ${e.key} }}`)}    }>{e.variable}</Button>
                       )
@@ -511,19 +519,19 @@ const Welcome = () => {
                 <Typography.Link href='https://jinja.palletsprojects.com/en/3.1.x/api/#basics' target='_blank'>Jinja 2 документаця</Typography.Link>
             </Modal>
             <Modal open={config.qlist_visible} title="Параметры отчета" width={800} onCancel={ ()  =>  setConfig({...config, qlist_visible: false})   } okText="Save" onOk={ onSaveQList  }>
-                { inputs.question_values.length == 0?
+                { (inputs.question_values || []).length == 0?
                   <>
                   <Typography.Title level={5}>Пустой список</Typography.Title>
                   <Button onClick={  ()=>  setInputs({...inputs, question_values: [{key: 'ключ', variable:  'значение'}]})  }>Новый параметр</Button>
                   </>
                    :
-                  inputs.question_values.map((_e:any, index:number) => {
+                  (inputs.question_values || []).map((_e:any, index:number) => {
                   return (
                     <>
-                   <Input key={'inp_key_'+index} size='small' style={{width: 200}} value={inputs.question_values[index].key} onChange={  (e:any)  =>  { const qv = JSON.parse(JSON.stringify(inputs.question_values)); 
+                   <Input key={'inp_key_'+index} size='small' style={{width: 200}} value={ (inputs.question_values || [])[index].key} onChange={  (e:any)  =>  { const qv = JSON.parse(JSON.stringify(inputs.question_values)); 
                     qv[index].key = e.target.value; setInputs({...inputs, question_values: qv})} 
                     }/> 
-                   <Input key={'inp_var_'+index} size="small"  style={{width: 300}} value={inputs.question_values[index].variable} onChange={  (e:any)  =>  {const qv = JSON.parse(JSON.stringify(inputs.question_values)); 
+                   <Input key={'inp_var_'+index} size="small"  style={{width: 300}} value={ (inputs.question_values || [])[index].variable} onChange={  (e:any)  =>  {const qv = JSON.parse(JSON.stringify(inputs.question_values)); 
                     qv[index].variable = e.target.value; setInputs({...inputs, question_values: qv})}  
                     }/>
                     <Button key={'inp_btn_'+index} size="small" onClick={  ()=>  onRemoveVariable(index)  }><MinusOutlined /></Button>
@@ -533,7 +541,7 @@ const Welcome = () => {
                   }).concat(
                     <>
                       <Divider />
-                      <Button size="small" onClick={  ()=>  setInputs({...inputs, question_values: inputs.question_values.concat({key: 'ключ', variable:  'значение'})})  }><PlusOutlined/></Button>
+                      <Button size="small" onClick={  ()=>  setInputs({...inputs, question_values: (inputs.question_values || []).concat({key: 'ключ', variable:  'значение'})})  }><PlusOutlined/></Button>
                     </>
                   )
             

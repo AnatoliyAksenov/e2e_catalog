@@ -3,9 +3,11 @@ import { /*useNavigate,*/ useLocation } from "react-router-dom"
 
 //import { useSelector } from 'react-redux'
 
-import { Row, Col, Layout, Typography, Menu, MenuProps } from 'antd';
+import { Row, Col, Layout, Typography, Menu, MenuProps, Button } from 'antd';
 
 //import Markdown from 'react-markdown'
+
+import {FilePdfOutlined } from '@ant-design/icons'
 
 import Plot from '../../components/Plot'
 //import { set } from "lodash";
@@ -118,18 +120,26 @@ const {Content} = Layout;
               <Content>
                 <Typography.Title level={4}>Отчет</Typography.Title>
               </Content>
-    
+              
+              <Typography.Link href={'api/question_pdf_report/'+id}><FilePdfOutlined size={32}/></Typography.Link>
+
               <Row style={{width: '100%'}}>
                 <Col span={24} style={{width: '100%'}}>
-                  <pre>{config.report}</pre>
+                  <pre style={{width: 800, whiteSpace: 'pre-wrap'}}>{config.report}</pre>
                 </Col>
               </Row>
 
-              <Typography.Title level={4}>Табличные данные</Typography.Title>
-              <Menu mode='horizontal' items={menu_items} />
-              <Content>
-                <Plot  {...params} />
-              </Content>
+              { (config.result_config||{}).question_key == 'simple_query'?
+              <>
+                <Typography.Title level={4}>Табличные данные</Typography.Title>
+                <Menu mode='horizontal' items={menu_items} />
+                <Content>
+                  <Plot  {...params} />
+                </Content>
+              </>
+               :
+               null
+              }
 
           </Content>
         </>

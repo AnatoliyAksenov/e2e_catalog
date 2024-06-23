@@ -398,37 +398,40 @@ async def company_query(connection, model, file_storage, query_id, data):
 
         return
     
-
-    # get inn
+    # common request params
     request_params = {'headers': headers, "timeout": 5}
-    inn_query = f" ИНН компании {query.get('query')} "
-    links = get_links('ddg', query_params={"q":inn_query}, request_params=request_params)
-    links = [x for x in links if x.startswith('http')]
-    links = [x for x in links if not any([xx in x for xx in BLACKLIST])]
-
     question_prompt = templates.get('simple_question').get('prompt')
     temp = templates.get('simple_question').get('temperature',  0.5)
 
+    # get inn
     inn = None
-    for link in links:
-        text = await get_text_by_link(link, request_params=request_params)
-        text =re.sub('\s{2,}', ' ', text)
-        inn_prompt = question_prompt.format(text=text, q=inn_query)
-        res = model.call(inn_prompt,  temp=temperature)
-        res = res.strip()
+    if key == 'simple_question':
+        
+        
+        inn_query = f" ИНН компании {query.get('query')} "
+        links = get_links('ddg', query_params={"q":inn_query}, request_params=request_params)
+        links = [x for x in links if x.startswith('http')]
+        links = [x for x in links if not any([xx in x for xx in BLACKLIST])]
+    
 
-        if res and re.findall('[0-9]{10}',res):
-            findarr = re.findall('[0-9]{10}', res)
-            if findarr:
-                variables['inn']  = findarr[0]
-                inn = findarr[0]
-                break
+        for link in links:
+            text = await get_text_by_link(link, request_params=request_params)
+            text =re.sub('\s{2,}', ' ', text)
+            inn_prompt = question_prompt.format(text=text, q=inn_query)
+            res = model.call(inn_prompt,  temp=temperature)
+            res = res.strip()
     
-    
+            if res and re.findall('[0-9]{10}',res):
+                findarr = re.findall('[0-9]{10}', res)
+                if findarr:
+                    variables['inn']  = findarr[0]
+                    inn = findarr[0]
+                    break
+        
     # for loop by user defined variables
     for q in conf.get('question_values'):
         only_question = q.get('variable')
-        question = f" '{only_question}' компания '{query.get('query')}' ИНН {inn}"
+        question = f" '{only_question}' { 'компания' if key == 'simple_question' else 'по' } '{query.get('query')}' {inn or ''}"
         key = q.get('key')
 
         links = get_links('ddg', query_params={"q":question}, request_params=request_params)
@@ -569,11 +572,12 @@ async def question_report(connection, query_id):
     """
 
     data = E2ec.get_query(connection, query_id)
-
     conf = E2ec.get_question_config(connection, question_key=data.get('theme'))
 
+    rdata = dict(**json.loads(data.get('params')), **conf)
+
     rtemplate = Environment(loader=BaseLoader(), undefined=SilentUndefined).from_string(conf.get('template'))
-    report = rtemplate.render(**json.loads(data.get('params')))
+    report = rtemplate.render(**rdata)
 
     return (report, data, conf)
 

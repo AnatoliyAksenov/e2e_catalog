@@ -136,7 +136,27 @@ async def blacklist(request: Request, connection: Annotated[object, Depends(conn
     return res
 
 
+# FIX REACT 
+
 @router.get('/dashboards')
 async def dashboards():
-    return RedirectResponse(url='/')
+    #return RedirectResponse(url='/')
+    return FileResponse(path='dist/index.html')
 
+
+@router.get('/report_view')
+async def dashboards():
+    #return RedirectResponse(url='/')
+    return FileResponse(path='dist/index.html')
+
+
+@router.get('/blacklist')
+async def dashboards():
+    #return RedirectResponse(url='/')
+    return FileResponse(path='dist/index.html')
+
+
+@router.get('/closedsources')
+async def dashboards():
+    #return RedirectResponse(url='/')
+    return FileResponse(path='dist/index.html')
